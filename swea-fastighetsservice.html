@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Swea Fastighetsservice – Stockholms Fastighetsexperter</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:      #2B4178;
+    --navy-dark: #1B4E81;
+    --navy-light:#3a5299;
+    --gold:      #C8913A;
+    --gold-light:#daa855;
+    --off-white: #f5f4f0;
+    --white:     #ffffff;
+    --text:      #2c2c2c;
+    --text-muted:#6b7280;
+    --border:    #e5e0d8;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'DM Sans', sans-serif; color: var(--text); background: var(--white); overflow-x: hidden; }
+
+  /* ── NAV ── */
+  .top-contact {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 110;
+    height: 34px;
+    background: #133a61;
+    border-bottom: 1px solid rgba(255,255,255,.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5%;
+  }
+  .top-contact-inner {
+    width: 100%;
+    max-width: 1100px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    font-size: .78rem;
+    letter-spacing: .02em;
+    color: rgba(255,255,255,.85);
+  }
+  .top-contact a {
+    color: rgba(255,255,255,.9);
+    text-decoration: none;
+    transition: color .2s;
+  }
+  .top-contact a:hover { color: var(--gold); }
+
+  nav {
+    position: fixed; top: 34px; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 5%; height: 72px;
+    background: rgba(27,78,129,0.97);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    transition: box-shadow .3s;
+  }
+  nav.scrolled { box-shadow: 0 4px 32px rgba(0,0,0,.25); }
+  .nav-logo { font-family:'Playfair Display',serif; font-size:1.2rem; color:var(--white); text-decoration:none; letter-spacing:.02em; }
+  .nav-logo span { color: var(--gold); }
+  .nav-links { display:flex; align-items:center; gap:2.5rem; list-style:none; }
+  .nav-links a { color:rgba(255,255,255,.78); text-decoration:none; font-size:.9rem; font-weight:500; letter-spacing:.04em; text-transform:uppercase; transition:color .2s; }
+  .nav-links a:hover { color: var(--gold); }
+  .nav-cta { background:var(--gold); color:var(--white)!important; padding:.55rem 1.4rem; border-radius:999px; transition:background .2s,transform .15s!important; }
+  .nav-cta:hover { background:var(--gold-light)!important; transform:translateY(-1px); }
+  .hamburger { display:none; flex-direction:column; gap:5px; cursor:pointer; padding:6px; }
+  .hamburger span { display:block; width:24px; height:2px; background:var(--white); border-radius:2px; transition:.3s; }
+
+  /* ── BTN NAVY (service sections) ── */
+  .btn-navy {
+    background: var(--navy);
+    color: var(--white);
+    padding: .72rem 1.8rem;
+    border-radius: 8px;
+    font-size: .95rem;
+    font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    transition: background .2s, transform .15s, box-shadow .2s;
+    letter-spacing: .01em;
+  }
+  .btn-navy:hover { background:var(--navy-light); transform:translateY(-2px); box-shadow:0 6px 20px rgba(43,65,120,.4); }
+
+  /* ── BTN PRIMARY (hero/gold) ── */
+  .btn-primary {
+    background: var(--gold); color: var(--white);
+    padding: .85rem 2.2rem; border-radius: 999px;
+    font-size: 1rem; font-weight: 600;
+    text-decoration: none; border: none; cursor: pointer;
+    transition: background .2s, transform .15s, box-shadow .2s;
+    display: inline-flex; align-items: center; gap: .5rem;
+  }
+  .btn-primary:hover { background:var(--gold-light); transform:translateY(-2px); box-shadow:0 8px 28px rgba(200,145,58,.45); }
+
+  /* ── BTN OUTLINE (hero secondary) ── */
+  .btn-outline {
+    border: 2px solid rgba(255,255,255,.55); color: var(--white);
+    padding: .82rem 2.2rem; border-radius: 999px;
+    font-size: 1rem; font-weight: 500; text-decoration: none;
+    transition: border-color .2s, background .2s, transform .15s;
+  }
+  .btn-outline:hover { border-color:var(--white); background:rgba(255,255,255,.08); transform:translateY(-2px); }
+
+  /* ── HERO ── */
+  #hero { position:relative; min-height:100vh; display:flex; align-items:center; justify-content:center; overflow:hidden; padding-top:106px; }
+  .hero-bg {
+    position:absolute; inset:0;
+    background:
+      linear-gradient(160deg, rgba(27,78,129,.85) 0%, rgba(27,78,129,.52) 50%, rgba(10,30,52,.8) 100%),
+      url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=1800&q=85') center/cover no-repeat;
+  }
+  .hero-content { position:relative; text-align:center; padding:0 1rem; max-width:780px; animation:fadeUp .9s ease both; }
+  .hero-eyebrow { font-size:.78rem; font-weight:600; letter-spacing:.22em; text-transform:uppercase; color:var(--gold); margin-bottom:1.2rem; }
+  .hero-title { font-family:'Playfair Display',serif; font-size:clamp(2.6rem,6vw,5rem); color:var(--white); line-height:1.08; margin-bottom:1.5rem; }
+  .hero-sub { font-size:1.05rem; color:rgba(255,255,255,.82); line-height:1.7; max-width:560px; margin:0 auto 2.5rem; font-weight:300; }
+  .hero-btns { display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; }
+  .hero-scroll { position:absolute; bottom:2.2rem; left:50%; transform:translateX(-50%); color:rgba(255,255,255,.5); font-size:1.5rem; text-decoration:none; animation:bounce 2s infinite; }
+
+  /* ── STATS BAR ── */
+  .stats-bar { background:var(--navy-dark); padding:2.2rem 5%; }
+  .stats-inner { max-width:1100px; margin:0 auto; display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; text-align:center; }
+  .stat-num { font-family:'Playfair Display',serif; font-size:2.4rem; color:var(--gold); line-height:1; }
+  .stat-label { font-size:.82rem; color:rgba(255,255,255,.6); letter-spacing:.06em; text-transform:uppercase; margin-top:.35rem; }
+
+  /* ── SECTIONS ── */
+  section { padding:7rem 5%; }
+  .section-inner { max-width:1100px; margin:0 auto; }
+  .section-eyebrow { font-size:.75rem; font-weight:600; letter-spacing:.22em; text-transform:uppercase; color:var(--gold); margin-bottom:.8rem; text-align:center; }
+  .section-title { font-family:'Playfair Display',serif; font-size:clamp(2rem,4vw,3rem); text-align:center; color:var(--navy-dark); margin-bottom:1rem; }
+  .section-lead { text-align:center; max-width:560px; margin:0 auto 3.5rem; color:var(--text-muted); line-height:1.75; font-size:.97rem; }
+
+  /* ── SERVICES ── */
+  #services { background: var(--off-white); }
+  .service-block { display:grid; grid-template-columns:1fr 1fr; gap:5rem; align-items:center; margin-bottom:6rem; }
+  .service-block:last-child { margin-bottom:0; }
+  .service-block.reverse { direction:rtl; }
+  .service-block.reverse > * { direction:ltr; }
+  .service-text h3 { font-family:'Playfair Display',serif; font-size:2rem; color:var(--navy-dark); margin-bottom:1rem; }
+  .service-text p { color:var(--text-muted); line-height:1.8; margin-bottom:2rem; font-size:.97rem; }
+
+  .before-after { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; }
+  .ba-wrap { position:relative; overflow:hidden; border-radius:14px; aspect-ratio:4/3; box-shadow:0 8px 32px rgba(0,0,0,.14); }
+  .ba-wrap img { width:100%; height:100%; object-fit:cover; display:block; transition:transform .45s ease; }
+  .ba-wrap:hover img { transform:scale(1.05); }
+  .ba-label { position:absolute; bottom:.65rem; left:50%; transform:translateX(-50%); background:rgba(0,0,0,.58); color:#fff; font-size:.72rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; padding:.28rem .8rem; border-radius:999px; backdrop-filter:blur(4px); white-space:nowrap; }
+
+  /* ── WHY US ── */
+  #why { background:var(--white); }
+  .why-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:2rem; }
+  .why-card { background:var(--off-white); border-radius:18px; padding:2.2rem; border:1px solid var(--border); transition:transform .25s, box-shadow .25s; }
+  .why-card:hover { transform:translateY(-6px); box-shadow:0 16px 40px rgba(26,39,68,.1); }
+  .why-icon { width:48px; height:48px; background:var(--navy-dark); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.4rem; margin-bottom:1.2rem; }
+  .why-card h4 { font-family:'Playfair Display',serif; font-size:1.15rem; color:var(--navy-dark); margin-bottom:.6rem; }
+  .why-card p { color:var(--text-muted); font-size:.9rem; line-height:1.7; }
+
+  /* ── CONTACT ── */
+  #contact { background:var(--navy-dark); padding:7rem 5%; }
+  #contact .section-title { color:var(--white); }
+  #contact .section-lead { color:rgba(255,255,255,.6); }
+  .contact-wrapper { max-width:680px; margin:0 auto; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1); border-radius:24px; padding:3rem; backdrop-filter:blur(10px); }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; }
+  .form-field { display:flex; flex-direction:column; gap:.45rem; }
+  .form-field.full { grid-column:1/-1; }
+  .form-field label { font-size:.82rem; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:rgba(255,255,255,.7); }
+  .form-field input, .form-field textarea { background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.15); border-radius:12px; padding:.85rem 1.1rem; font-family:'DM Sans',sans-serif; font-size:.95rem; color:var(--white); outline:none; transition:border-color .2s, background .2s; resize:none; }
+  .form-field input::placeholder, .form-field textarea::placeholder { color:rgba(255,255,255,.3); }
+  .form-field input:focus, .form-field textarea:focus { border-color:var(--gold); background:rgba(255,255,255,.1); }
+  .form-field textarea { height:120px; }
+  .btn-submit { width:100%; margin-top:1.5rem; background:var(--gold); color:var(--white); padding:1rem 2rem; border-radius:999px; font-size:1rem; font-weight:600; font-family:'DM Sans',sans-serif; border:none; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:.6rem; transition:background .2s, transform .15s, box-shadow .2s; }
+  .btn-submit:hover { background:var(--gold-light); transform:translateY(-2px); box-shadow:0 8px 28px rgba(200,145,58,.45); }
+
+  /* ── FOOTER ── */
+  footer {
+    background:#133a61;
+    padding:2.7rem 5% 2.3rem;
+    color:rgba(255,255,255,.8);
+  }
+  .footer-inner {
+    max-width:1100px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:1.5rem;
+    align-items:center;
+  }
+  .footer-brand {
+    font-family:'Playfair Display',serif;
+    font-size:1.1rem;
+    margin-bottom:.35rem;
+  }
+  .footer-brand span { color:var(--gold); }
+  .footer-copy {
+    font-size:.82rem;
+    color:rgba(255,255,255,.65);
+    line-height:1.6;
+  }
+  .footer-contact {
+    display:flex;
+    flex-direction:column;
+    gap:.4rem;
+    text-align:right;
+    font-size:.85rem;
+  }
+  .footer-contact a {
+    color:rgba(255,255,255,.9);
+    text-decoration:none;
+  }
+  .footer-contact a:hover { color:var(--gold); }
+
+  /* ── MOBILE NAV ── */
+  .mobile-menu { display:none; position:fixed; top:106px; left:0; right:0; background:var(--navy-dark); padding:1.5rem 5%; z-index:99; flex-direction:column; gap:1.2rem; border-bottom:1px solid rgba(255,255,255,.08); }
+  .mobile-menu.open { display:flex; }
+  .mobile-menu a { color:rgba(255,255,255,.8); text-decoration:none; font-size:1rem; font-weight:500; padding:.3rem 0; border-bottom:1px solid rgba(255,255,255,.06); }
+  .mobile-menu a:last-child { border:none; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:none} }
+  @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(8px)} }
+  .reveal { opacity:0; transform:translateY(30px); transition:opacity .65s ease, transform .65s ease; }
+  .reveal.visible { opacity:1; transform:none; }
+
+  /* ── RESPONSIVE ── */
+  @media(max-width:1000px) {
+    .top-contact-inner { font-size:.73rem; }
+  }
+  @media(max-width:900px) {
+    .service-block { grid-template-columns:1fr; gap:2.5rem; }
+    .service-block.reverse { direction:ltr; }
+    .why-grid { grid-template-columns:1fr 1fr; }
+    .stats-inner { grid-template-columns:repeat(3,1fr); }
+  }
+  @media(max-width:680px) {
+    .top-contact {
+      height: auto;
+      min-height: 40px;
+      padding: .35rem 6%;
+    }
+    .top-contact-inner {
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+      gap: .2rem;
+    }
+    nav {
+      top: 40px;
+    }
+    .nav-links { display:none; }
+    .hamburger { display:flex; }
+    .why-grid { grid-template-columns:1fr; }
+    .form-grid { grid-template-columns:1fr; }
+    .contact-wrapper { padding:2rem 1.5rem; }
+    .stats-inner { grid-template-columns:1fr; gap:1.8rem; }
+    section { padding:5rem 6%; }
+    .mobile-menu { top:112px; }
+    .footer-inner { grid-template-columns:1fr; }
+    .footer-contact { text-align:left; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-contact">
+  <div class="top-contact-inner">
+    <a href="tel:+46701234567">Celular: +46 70 123 45 67</a>
+    <a href="mailto:info@sweafastighetsservice.se">Correo: info@sweafastighetsservice.se</a>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a href="#hero" class="nav-logo">Swea <span>Fastighetsservice</span></a>
+  <ul class="nav-links">
+    <li><a href="#services">Tjänster</a></li>
+    <li><a href="#why">Om oss</a></li>
+    <li><a href="#contact" class="nav-cta">Begär offert</a></li>
+  </ul>
+  <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#services" onclick="closeMobile()">Tjänster</a>
+  <a href="#why" onclick="closeMobile()">Om oss</a>
+  <a href="#contact" onclick="closeMobile()">Begär offert</a>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">Stockholms Fastighetsexperter</p>
+    <h1 class="hero-title">Swea Fastighets&shy;service</h1>
+    <p class="hero-sub">Vi ger era fastigheter nytt liv. Professionell taktvätt, fasadtvätt och klottersanering i Stockholmsområdet.</p>
+    <div class="hero-btns">
+      <a href="#contact" class="btn-primary">✉ Begär offert</a>
+      <a href="#services" class="btn-outline">Se våra tjänster</a>
+    </div>
+  </div>
+  <a href="#services" class="hero-scroll">↓</a>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div><div class="stat-num">500+</div><div class="stat-label">Nöjda kunder</div></div>
+    <div><div class="stat-num">10+</div><div class="stat-label">Års erfarenhet</div></div>
+    <div><div class="stat-num">100%</div><div class="stat-label">Nöjdhetsgaranti</div></div>
+  </div>
+</div>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="section-inner">
+    <p class="section-eyebrow">Vad vi erbjuder</p>
+    <h2 class="section-title">Våra tjänster</h2>
+    <p class="section-lead">Vi erbjuder skräddarsydda lösningar för att hålla din fastighet i toppskick – året om.</p>
+
+    <!-- Taktvätt -->
+    <div class="service-block reveal">
+      <div class="service-text">
+        <h3>Taktvätt</h3>
+        <p>Vi utför professionell taktvätt som tar bort mossa, lav och smuts från ert tak. Vår skonsamma men effektiva metod förlänger takets livslängd och ger fastigheten ett fräscht utseende. Vi behandlar även taket med ett skyddande medel som förhindrar framtida påväxt.</p>
+        <a href="#contact" class="btn-navy">Begär offert</a>
+      </div>
+      <div class="before-after">
+        <div class="ba-wrap">
+          <img src="https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=700&q=85" alt="Tak med mossa – före tvätt">
+          <span class="ba-label">Före</span>
+        </div>
+        <div class="ba-wrap">
+          <img src="https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6?w=700&q=85" alt="Rent tak – efter tvätt">
+          <span class="ba-label">Efter</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fasadtvätt -->
+    <div class="service-block reverse reveal">
+      <div class="service-text">
+        <h3>Fasadtvätt</h3>
+        <p>Med vår fasadtvätt återställer vi er fasad till sitt forna skick. Vi avlägsnar alger, mögel, smuts och andra föroreningar med metoder anpassade för varje fasadtyp. Resultatet blir en ren och inbjudande fasad som höjer fastighetens värde.</p>
+        <a href="#contact" class="btn-navy">Begär offert</a>
+      </div>
+      <div class="before-after">
+        <div class="ba-wrap">
+          <img src="https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=700&q=85" alt="Smutsig fasad – före">
+          <span class="ba-label">Före</span>
+        </div>
+        <div class="ba-wrap">
+          <img src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?w=700&q=85" alt="Ren fasad – efter">
+          <span class="ba-label">Efter</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Klottersanering -->
+    <div class="service-block reveal">
+      <div class="service-text">
+        <h3>Klottersanering</h3>
+        <p>Vi erbjuder snabb och effektiv klottersanering som tar bort oönskat klotter utan att skada den underliggande ytan. Våra specialanpassade metoder fungerar på alla typer av material – sten, betong, puts, trä och metall. Vi kan även applicera klotterskydd för att förenkla framtida sanering.</p>
+        <a href="#contact" class="btn-navy">Begär offert</a>
+      </div>
+      <div class="before-after">
+        <div class="ba-wrap">
+          <img src="https://images.unsplash.com/photo-1520209759809-a9bcb6cb3241?w=700&q=85" alt="Klotter på vägg – före">
+          <span class="ba-label">Före</span>
+        </div>
+        <div class="ba-wrap">
+          <img src="https://images.unsplash.com/photo-1565372195458-9de0b320ef04?w=700&q=85" alt="Ren vägg – efter">
+          <span class="ba-label">Efter</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- WHY US -->
+<section id="why">
+  <div class="section-inner">
+    <p class="section-eyebrow">Varför välja oss</p>
+    <h2 class="section-title">Expertis du kan lita på</h2>
+    <p class="section-lead">Med över tio års erfarenhet i Stockholmsregionen levererar vi resultat som håller – varje gång.</p>
+    <div class="why-grid">
+      <div class="why-card reveal">
+        <div class="why-icon">🛡️</div>
+        <h4>Kvalitetsgaranti</h4>
+        <p>Vi garanterar nöjda kunder. Om du inte är 100 % nöjd med resultatet, återkommer vi och åtgärdar det kostnadsfritt.</p>
+      </div>
+      <div class="why-card reveal">
+        <div class="why-icon">🌿</div>
+        <h4>Miljövänliga metoder</h4>
+        <p>Vi använder miljögodkända produkter och skonsamma metoder som är säkra för både fastigheter och naturen.</p>
+      </div>
+      <div class="why-card reveal">
+        <div class="why-icon">⚡</div>
+        <h4>Snabb service</h4>
+        <p>Vi svarar på offertförfrågningar inom 24 timmar och anpassar oss efter dina behov och tidtabeller.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="section-inner">
+    <p class="section-eyebrow">Kontakta oss</p>
+    <h2 class="section-title">Begär offert</h2>
+    <p class="section-lead">Fyll i formuläret nedan så återkommer vi med en kostnadsfri offert.</p>
+    <div class="contact-wrapper reveal">
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Namn</label>
+          <input type="text" placeholder="Ditt namn">
+        </div>
+        <div class="form-field">
+          <label>Telefonnummer</label>
+          <input type="tel" placeholder="07X-XXX XX XX">
+        </div>
+        <div class="form-field">
+          <label>E-post</label>
+          <input type="email" placeholder="din@email.se">
+        </div>
+        <div class="form-field">
+          <label>Adress</label>
+          <input type="text" placeholder="Gatuadress, stad">
+        </div>
+        <div class="form-field full">
+          <label>Beskrivning</label>
+          <textarea placeholder="Beskriv vad du behöver hjälp med..."></textarea>
+        </div>
+      </div>
+      <button class="btn-submit" id="formBtn">✈ Skicka förfrågan</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <p class="footer-brand">Swea <span>Fastighetsservice</span></p>
+      <p class="footer-copy">&copy; 2026 Swea Fastighetsservice. Stockholms Fastighetsexperter med fokus på kvalitet, snabb service och hållbara resultat.</p>
+    </div>
+    <div class="footer-contact">
+      <a href="tel:+46701234567">+46 70 123 45 67</a>
+      <a href="mailto:info@sweafastighetsservice.se">info@sweafastighetsservice.se</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => { navbar.classList.toggle('scrolled', window.scrollY > 40); });
+
+  const hamburger = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  hamburger.addEventListener('click', () => { mobileMenu.classList.toggle('open'); });
+  function closeMobile() { mobileMenu.classList.remove('open'); }
+
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        e.target.style.transitionDelay = (i % 3) * 0.1 + 's';
+        e.target.classList.add('visible');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => io.observe(el));
+
+  document.getElementById('formBtn').addEventListener('click', () => {
+    alert('Tack! Vi återkommer inom 24 timmar.');
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { site } from '../data/site';
+---
+
+<BaseLayout title="Swea Fastighetsservice - Guía de Estilo" description="Guía de estilo visual de Swea Fastighetsservice.">
+  <section id="styleguide">
+    <p class="section-eyebrow">Referens</p>
+    <h1 class="section-title" style="margin-bottom:.5rem;color:var(--white);">Guía de Estilo</h1>
+    <p class="sg-lead">Färger, tipografía y componentes base para {site.logo.label} {site.logo.accent}.</p>
+
+    <div class="sg-grid">
+      <div class="sg-card">
+        <div class="sg-card-title">Colores</div>
+        <div class="sg-swatches">
+          <div class="swatch">
+            <div class="swatch-dot" style="background:#1B4E81;border:1px solid rgba(255,255,255,.1)"></div>
+            <div class="swatch-info">
+              <span class="swatch-name">Navy Dark</span>
+              <span class="swatch-hex">#1B4E81</span>
+              <span class="swatch-use">Header, footer y secciones oscuras</span>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-dot" style="background:#2B4178"></div>
+            <div class="swatch-info">
+              <span class="swatch-name">Navy</span>
+              <span class="swatch-hex">#2B4178</span>
+              <span class="swatch-use">Botones de servicios</span>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-dot" style="background:#3a5299"></div>
+            <div class="swatch-info">
+              <span class="swatch-name">Navy Light</span>
+              <span class="swatch-hex">#3a5299</span>
+              <span class="swatch-use">Hover de botones navy</span>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-dot" style="background:#C8913A"></div>
+            <div class="swatch-info">
+              <span class="swatch-name">Gold</span>
+              <span class="swatch-hex">#C8913A</span>
+              <span class="swatch-use">CTAs y acentos</span>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-dot" style="background:#f5f4f0;border:1px solid rgba(255,255,255,.15)"></div>
+            <div class="swatch-info">
+              <span class="swatch-name">Off White</span>
+              <span class="swatch-hex">#f5f4f0</span>
+              <span class="swatch-use">Fondos de sección</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sg-card">
+        <div class="sg-card-title">Tipografía</div>
+        <div class="sg-type-sample">
+          <div class="sg-type-name">Playfair Display 700</div>
+          <div class="sg-h1">Swea Fastighetsservice</div>
+        </div>
+        <div class="sg-type-sample">
+          <div class="sg-type-name">Playfair Display 700</div>
+          <div class="sg-h2">Våra tjänster</div>
+        </div>
+        <div class="sg-type-sample">
+          <div class="sg-type-name">DM Sans 400</div>
+          <div class="sg-body">Vi utför professionell taktvätt som tar bort mossa, lav och smuts.</div>
+        </div>
+      </div>
+
+      <div class="sg-card">
+        <div class="sg-card-title">Botones</div>
+        <div class="sg-btns">
+          <div class="sg-btn-row">
+            <div class="sg-btn-label">Primary</div>
+            <a href="/" class="btn-primary" style="width:fit-content">✉ Begär offert</a>
+          </div>
+          <div class="sg-btn-row">
+            <div class="sg-btn-label">Navy</div>
+            <a href="/" class="btn-navy" style="width:fit-content">Begär offert</a>
+          </div>
+          <div class="sg-btn-row">
+            <div class="sg-btn-label">Outline</div>
+            <a href="/" class="btn-outline" style="width:fit-content">Se våra tjänster</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p style="text-align:center;margin-top:2rem;">
+      <a href="/" style="color:rgba(255,255,255,.9);text-decoration:none;">Volver al inicio</a>
+    </p>
+  </section>
+</BaseLayout>

@@ -1,0 +1,399 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ContactForm from '../components/ContactForm.vue';
+import SiteHeader from '../components/SiteHeader.vue';
+import { site } from '../data/site';
+
+const whyIcons = ['bi-shield-check', 'bi-recycle', 'bi-lightning-charge'];
+const [featuredService, ...simpleServices] = site.services;
+
+const optimizeCloudinaryImage = (url: string, transforms = 'f_auto,q_auto:eco,w_1920,dpr_auto') => {
+  const uploadSegment = '/upload/';
+  if (!url.includes('res.cloudinary.com') || !url.includes(uploadSegment)) {
+    return url;
+  }
+  return url.replace(uploadSegment, `${uploadSegment}${transforms}/`);
+};
+
+const heroImageOptimized = optimizeCloudinaryImage(site.hero.image);
+---
+
+<BaseLayout title={site.meta.title} description={site.meta.description}>
+  <link slot="head" rel="preload" as="image" href={heroImageOptimized} fetchpriority="high" />
+  <SiteHeader client:idle logo={site.logo} links={site.navigation} topContact={site.topContact} />
+
+  <main>
+    <section id="hero" class="hero-shell">
+      <div class="hero-bg" aria-hidden="true">
+        <img
+          src={heroImageOptimized}
+          alt=""
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      </div>
+      <div class="hero-content">
+        <p class="hero-eyebrow">{site.hero.eyebrow}</p>
+        <h1 class="hero-title animate-title">{site.hero.title}</h1>
+        <p class="hero-sub animate-title">{site.hero.subtitle}</p>
+        <div class="hero-btns">
+          <a href="#contact-form" class="btn-primary animate-btn"><i class="bi bi-envelope-fill" aria-hidden="true"></i> {site.hero.primaryCta}</a>
+          <a href="#services" class="btn-outline animate-btn">{site.hero.secondaryCta}</a>
+        </div>
+      </div>
+      <a href="#services" class="hero-scroll">↓</a>
+    </section>
+
+    <div class="benefits-band">
+      <div class="benefits-inner">
+        {site.benefits.map((benefit) => (
+          <article class="benefit-card reveal">
+            <p class="benefit-card-title">{benefit.title}</p>
+            <p>{benefit.body}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+
+    <section id="services">
+      <div class="section-inner">
+        <p class="section-eyebrow">{site.servicesSection.eyebrow}</p>
+        <h2 class="section-title animate-title">{site.servicesSection.title}</h2>
+        <p class="section-lead">{site.servicesSection.lead}</p>
+
+        {featuredService ? (
+          <div class:list={["service-block reveal", { reverse: featuredService.reverse }]}>
+            <div class="service-text">
+              <h3 class="animate-title">{featuredService.title}</h3>
+              <p>{featuredService.body}</p>
+              <a href="#contact" class="btn-navy animate-btn">{featuredService.cta}</a>
+            </div>
+            <div class="service-gallery" aria-label="Före och efter bilder">
+              <p class="service-gallery-title">FORE / EFTER</p>
+              <figure class="service-photo-card">
+                <img src={featuredService.before.src} alt={featuredService.before.alt} loading="lazy" decoding="async" width="1200" height="800" style={`object-position: ${featuredService.before.objectPosition};`} />
+                <figcaption class="service-photo-tag">{featuredService.before.label}</figcaption>
+              </figure>
+              <figure class="service-photo-card">
+                <img src={featuredService.after.src} alt={featuredService.after.alt} loading="lazy" decoding="async" width="1200" height="800" style={`object-position: ${featuredService.after.objectPosition};`} />
+                <figcaption class="service-photo-tag">{featuredService.after.label}</figcaption>
+              </figure>
+            </div>
+          </div>
+        ) : null}
+
+        <div class="service-simple-grid">
+          {simpleServices.map((service) => (
+            <article class="service-simple-item reveal">
+              <div class="service-text">
+                <h3 class="animate-title">{service.title}</h3>
+                <p>{service.body}</p>
+                <a href="#contact" class="btn-navy animate-btn">{service.cta}</a>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section id="why">
+      <div class="section-inner">
+        <p class="section-eyebrow">{site.why.eyebrow}</p>
+        <h2 class="section-title animate-title">{site.why.title}</h2>
+        <p class="section-lead">{site.why.lead}</p>
+        <div class="why-grid">
+          {site.why.items.map((item, index) => (
+            <div class="why-card reveal">
+              <div class="why-icon"><i class:list={["bi", whyIcons[index] || 'bi-circle']} aria-hidden="true"></i></div>
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section id="contact">
+      <div class="section-inner">
+        <p class="section-eyebrow">{site.contact.eyebrow}</p>
+        <h2 class="section-title animate-title">{site.contact.title}</h2>
+        <p class="section-lead">{site.contact.lead}</p>
+        <div class="contact-quick-actions">
+          <a class="contact-pill" href={site.footer.phoneHref}><i class="bi bi-telephone-fill" aria-hidden="true"></i> {site.footer.phoneLabel}</a>
+          <a class="contact-pill" href={site.footer.emailHref}><i class="bi bi-envelope-fill" aria-hidden="true"></i> {site.footer.emailLabel}</a>
+        </div>
+        <div id="contact-form" class="contact-wrapper">
+          <ContactForm
+            client:visible
+            fields={site.contact.fields}
+            submitLabel={site.contact.submitLabel}
+            successMessage={site.contact.successMessage}
+            web3forms={site.contact.web3forms}
+          />
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-block footer-brand-block">
+        <p class="footer-brand">{site.footer.brand.label} <span>{site.footer.brand.accent}</span></p>
+        <p class="footer-copy">&copy; {new Date().getFullYear()} {site.footer.brand.label} {site.footer.brand.accent}. {site.footer.copy}</p>
+      </div>
+      <div class="footer-block footer-links">
+        <a href="#services">Tjänster</a>
+        <a href="#why">Om oss</a>
+        <a href="#contact">Begär offert</a>
+      </div>
+      <div class="footer-block footer-contact">
+        <a href={site.footer.phoneHref}><i class="bi bi-telephone-fill" aria-hidden="true"></i> {site.footer.phoneLabel}</a>
+        <a href={site.footer.emailHref}><i class="bi bi-envelope-fill" aria-hidden="true"></i> {site.footer.emailLabel}</a>
+      </div>
+    </div>
+  </footer>
+
+  <a class="whatsapp-float" href={site.footer.whatsappHref} target="_blank" rel="noopener noreferrer" aria-label="Contactar por WhatsApp">
+    <i class="bi bi-whatsapp" aria-hidden="true"></i>
+  </a>
+
+  <script>
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const startAnimations = async () => {
+      if (prefersReducedMotion) return;
+
+      const [{ default: gsap }, { ScrollTrigger }] = await Promise.all([
+        import('gsap'),
+        import('gsap/ScrollTrigger'),
+      ]);
+
+      gsap.registerPlugin(ScrollTrigger);
+
+      gsap.from('nav', {
+        y: -36,
+        opacity: 0,
+        duration: 0.9,
+        ease: 'power2.out',
+      });
+
+      gsap.set('.animate-title, .animate-btn, .animate-img, .reveal', { willChange: 'transform, opacity' });
+
+      const mm = gsap.matchMedia();
+
+      const buildTimeline = (config) => {
+        const section = document.querySelector(config.selector);
+        if (!section) return;
+
+        const titles = section.querySelectorAll('.animate-title');
+        const buttons = section.querySelectorAll('.animate-btn, .btn-submit');
+        const images = section.querySelectorAll('.animate-img');
+
+        if (!titles.length && !buttons.length && !images.length) return;
+
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: section,
+            start: config.start,
+            end: config.end,
+            scrub: true,
+            markers: false,
+          },
+        });
+
+        if (titles.length) {
+          tl.from(titles, {
+            y: 50,
+            opacity: 0,
+            scale: 0.9,
+            ease: 'power2.out',
+            stagger: config.stagger,
+            duration: config.titleDuration,
+          });
+        }
+
+        if (buttons.length) {
+          tl.from(
+            buttons,
+            {
+              y: 50,
+              opacity: 0,
+              scale: 0.9,
+              ease: 'power2.out',
+              stagger: config.stagger,
+              duration: config.buttonDuration,
+            },
+            '-=0.45',
+          );
+        }
+
+        if (images.length) {
+          tl.from(
+            images,
+            {
+              y: 50,
+              opacity: 0,
+              scale: 0.9,
+              ease: 'power2.out',
+              stagger: config.stagger,
+              duration: config.imageDuration,
+            },
+            '-=0.35',
+          );
+        }
+      };
+
+      mm.add('(min-width: 769px)', () => {
+        [
+          {
+            selector: '#hero',
+            start: 'top 88%',
+            end: 'bottom 58%',
+            stagger: 0.15,
+            titleDuration: 1.3,
+            buttonDuration: 1,
+            imageDuration: 1.1,
+          },
+          {
+            selector: '#services',
+            start: 'top 115%',
+            end: 'bottom 78%',
+            stagger: 0.13,
+            titleDuration: 1.1,
+            buttonDuration: 0.95,
+            imageDuration: 1.05,
+          },
+          {
+            selector: '#why',
+            start: 'top 82%',
+            end: 'bottom 62%',
+            stagger: 0.12,
+            titleDuration: 1,
+            buttonDuration: 0.9,
+            imageDuration: 0.95,
+          },
+          {
+            selector: '#contact',
+            start: 'top 82%',
+            end: 'bottom 62%',
+            stagger: 0.12,
+            titleDuration: 1,
+            buttonDuration: 0.95,
+            imageDuration: 0.95,
+          },
+        ].forEach(buildTimeline);
+
+        gsap.utils.toArray('.reveal').forEach((element) => {
+          gsap.fromTo(
+            element,
+            { y: 50, opacity: 0, scale: 0.9 },
+            {
+              y: 0,
+              opacity: 1,
+              scale: 1,
+              ease: 'power2.out',
+              duration: 1,
+              scrollTrigger: {
+                trigger: element,
+                start: 'top 86%',
+                end: 'bottom 66%',
+                scrub: true,
+                markers: false,
+              },
+            },
+          );
+        });
+      });
+
+      mm.add('(max-width: 768px)', () => {
+        [
+          {
+            selector: '#hero',
+            start: 'top 92%',
+            end: 'bottom 72%',
+            stagger: 0.08,
+            titleDuration: 0.85,
+            buttonDuration: 0.8,
+            imageDuration: 0.85,
+          },
+          {
+            selector: '#services',
+            start: 'top 118%',
+            end: 'bottom 84%',
+            stagger: 0.08,
+            titleDuration: 0.8,
+            buttonDuration: 0.75,
+            imageDuration: 0.8,
+          },
+          {
+            selector: '#why',
+            start: 'top 90%',
+            end: 'bottom 70%',
+            stagger: 0.08,
+            titleDuration: 0.78,
+            buttonDuration: 0.75,
+            imageDuration: 0.78,
+          },
+          {
+            selector: '#contact',
+            start: 'top 90%',
+            end: 'bottom 70%',
+            stagger: 0.08,
+            titleDuration: 0.78,
+            buttonDuration: 0.75,
+            imageDuration: 0.78,
+          },
+        ].forEach(buildTimeline);
+
+        gsap.utils.toArray('.reveal').forEach((element) => {
+          gsap.fromTo(
+            element,
+            { y: 50, opacity: 0, scale: 0.9 },
+            {
+              y: 0,
+              opacity: 1,
+              scale: 1,
+              ease: 'power2.out',
+              duration: 0.75,
+              scrollTrigger: {
+                trigger: element,
+                start: 'top 92%',
+                end: 'bottom 72%',
+                scrub: true,
+                markers: false,
+              },
+            },
+          );
+        });
+      });
+
+      gsap.to('.hero-bg', {
+        yPercent: 8,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: '#hero',
+          start: 'top top',
+          end: 'bottom top',
+          scrub: true,
+          markers: false,
+        },
+      });
+
+      gsap.to('.whatsapp-float', {
+        y: -10,
+        repeat: -1,
+        yoyo: true,
+        ease: 'power2.out',
+        duration: 1.4,
+      });
+    };
+
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(startAnimations, { timeout: 1500 });
+    } else {
+      window.setTimeout(startAnimations, 300);
+    }
+  </script>
+</BaseLayout>

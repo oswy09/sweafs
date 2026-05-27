@@ -1,0 +1,161 @@
+{
+  "meta": {
+    "title": "Swea Fastighetsservice – Stockholms Fastighetsexperter",
+    "description": "Professionell taktvätt, fasadtvätt och klottersanering i Stockholmsområdet."
+  },
+  "logo": {
+    "label": "Swea",
+    "accent": "Fastighetsservice"
+  },
+  "navigation": [
+    { "label": "Tjänster", "href": "#services" },
+    { "label": "Om oss", "href": "#why" },
+    { "label": "Kontakt", "href": "#contact-form" },
+    { "label": "Begär offert", "href": "#contact-form", "cta": true }
+  ],
+  "topContact": {
+    "phoneLabel": "073-5131940",
+    "phoneHref": "tel:0735131940",
+    "emailLabel": "info@sweafs.se",
+    "emailHref": "mailto:info@sweafs.se",
+    "whatsappLabel": "WhatsApp",
+    "whatsappHref": "https://api.whatsapp.com/send/?phone=46735131940&text=Hej%21+Jag+vill+ha+hj%C3%A4lp+med+min+fastighet.&type=phone_number&app_absent=0"
+  },
+  "hero": {
+    "eyebrow": "Stockholms Fastighetsexperter",
+    "title": "Swea Fastighetsservice",
+    "subtitle": "Vi ger era fastigheter nytt liv. Professionell taktvätt, fasadtvätt och klottersanering i Stockholmsområdet.",
+    "primaryCta": "Begär offert",
+    "secondaryCta": "Se våra tjänster",
+    "image": "https://res.cloudinary.com/ddqbnr9vo/image/upload/v1779639507/Estocolmo_Portada_eqeqq9.jpg"
+  },
+  "benefits": [
+    {
+      "title": "Professionellt resultat direkt",
+      "body": "Vi arbetar noggrant och effektivt för att ge ditt hem eller din fastighet ett rent och fräscht resultat."
+    },
+    {
+      "title": "Noggrant utfört arbete",
+      "body": "Oavsett om det gäller taktvätt, fasadtvätt, altantvätt eller stentvätt lämnar vi alltid arbetet rent och snyggt efter oss."
+    },
+    {
+      "title": "Skonsam & effektiv behandling",
+      "body": "Vi använder effektiva metoder och behandlingar för att rengöra ytor på ett skonsamt och hållbart sätt."
+    }
+  ],
+  "servicesSection": {
+    "eyebrow": "Vad vi erbjuder",
+    "title": "Våra tjänster",
+    "lead": "Vi erbjuder skräddarsydda lösningar för att hålla din fastighet i toppskick – året om."
+  },
+  "services": [
+    {
+      "title": "Taktvätt",
+      "body": "Vi utför professionell taktvätt som tar bort mossa, lav och smuts från ert tak. Vår skonsamma men effektiva metod förlänger takets livslängd och ger fastigheten ett fräscht utseende. Vi behandlar även taket med ett skyddande medel som förhindrar framtida påväxt.",
+      "cta": "Begär offert",
+      "reverse": false,
+      "before": {
+        "src": "https://res.cloudinary.com/ddqbnr9vo/image/upload/v1779631777/tak_f%C3%B6re_pzbi0y.jpg",
+        "alt": "Tak med mossa – före tvätt",
+        "label": "Före",
+        "objectPosition": "center 58%"
+      },
+      "after": {
+        "src": "https://res.cloudinary.com/ddqbnr9vo/image/upload/v1779631797/tak_efter_zida3k.jpg",
+        "alt": "Rent tak – efter tvätt",
+        "label": "Efter",
+        "objectPosition": "center 56%"
+      }
+    },
+    {
+      "title": "Fasadtvätt",
+      "body": "Med vår fasadtvätt återställer vi er fasad till sitt forna skick. Vi avlägsnar alger, mögel, smuts och andra föroreningar med metoder anpassade för varje fasadtyp. Resultatet blir en ren och inbjudande fasad som höjer fastighetens värde.",
+      "cta": "Begär offert",
+      "reverse": true,
+      "before": {
+        "src": "https://res.cloudinary.com/ddqbnr9vo/image/upload/v1778618023/facade-before-TVDLNBd8_hgklrx.jpg",
+        "alt": "Smutsig fasad – före",
+        "label": "Före",
+        "objectPosition": "center 52%"
+      },
+      "after": {
+        "src": "https://res.cloudinary.com/ddqbnr9vo/image/upload/v1778618022/facade-after-DccXGGdr_mzi5af.jpg",
+        "alt": "Ren fasad – efter",
+        "label": "Efter",
+        "objectPosition": "center 52%"
+      }
+    },
+    {
+      "title": "Klottersanering",
+      "body": "Vi erbjuder snabb och effektiv klottersanering som tar bort oönskat klotter utan att skada den underliggande ytan. Våra specialanpassade metoder fungerar på alla typer av material – sten, betong, puts, trä och metall. Vi kan även applicera klotterskydd för att förenkla framtida sanering.",
+      "cta": "Begär offert",
+      "reverse": false,
+      "before": {
+        "src": "https://res.cloudinary.com/ddqbnr9vo/image/upload/v1778617627/before-graff_tvs6qq.png",
+        "alt": "Klotter på vägg – före",
+        "label": "Före",
+        "objectPosition": "center 48%"
+      },
+      "after": {
+        "src": "https://res.cloudinary.com/ddqbnr9vo/image/upload/v1778617626/after-graff_r7ovkd.png",
+        "alt": "Ren vägg – efter",
+        "label": "Efter",
+        "objectPosition": "center 48%"
+      }
+    }
+  ],
+  "why": {
+    "eyebrow": "Varför välja oss",
+    "title": "Expertis du kan lita på",
+    "lead": "Med över tio års erfarenhet i Stockholmsregionen levererar vi resultat som håller – varje gång.",
+    "items": [
+      {
+        "icon": "🛡️",
+        "title": "Kvalitetsgaranti",
+        "body": "Vi garanterar nöjda kunder. Om du inte är 100 % nöjd med resultatet, återkommer vi och åtgärdar det kostnadsfritt."
+      },
+      {
+        "icon": "🌿",
+        "title": "Miljövänliga metoder",
+        "body": "Vi använder miljögodkända produkter och skonsamma metoder som är säkra för både fastigheter och naturen."
+      },
+      {
+        "icon": "⚡",
+        "title": "Snabb service",
+        "body": "Vi svarar på offertförfrågningar inom 24 timmar och anpassar oss efter dina behov och tidtabeller."
+      }
+    ]
+  },
+  "contact": {
+    "eyebrow": "Kontakta oss",
+    "title": "Begär offert",
+    "lead": "Fyll i formuläret nedan så återkommer vi med en kostnadsfri offert.",
+    "fields": [
+      { "name": "name", "label": "Namn", "type": "text", "placeholder": "Ditt namn", "required": true },
+      { "name": "phone", "label": "Telefonnummer", "type": "tel", "placeholder": "07X-XXX XX XX", "required": true },
+      { "name": "email", "label": "E-post", "type": "email", "placeholder": "din@email.se", "required": true },
+      { "name": "address", "label": "Adress", "type": "text", "placeholder": "Gatuadress, stad" },
+      { "name": "message", "label": "Beskrivning", "type": "textarea", "placeholder": "Beskriv vad du behöver hjälp med...", "full": true }
+    ],
+    "submitLabel": "Skicka förfrågan",
+    "successMessage": "Tack! Vi återkommer inom 24 timmar.",
+    "web3forms": {
+      "accessKey": "d1f8c1e3-24b3-4a76-a027-2d59b6ce6d41",
+      "subject": "Ny kontaktforfragan fran sweafs.se",
+      "fromName": "Swea Fastighetsservice"
+    }
+  },
+  "footer": {
+    "brand": {
+      "label": "Swea",
+      "accent": "Fastighetsservice"
+    },
+    "copy": "Stockholms Fastighetsexperter med fokus på kvalitet, snabb service och hållbara resultat.",
+    "phoneLabel": "073-5131940",
+    "phoneHref": "tel:0735131940",
+    "emailLabel": "info@sweafs.se",
+    "emailHref": "mailto:info@sweafs.se",
+    "whatsappLabel": "WhatsApp",
+    "whatsappHref": "https://api.whatsapp.com/send/?phone=46735131940&text=Hej%21+Jag+vill+ha+hj%C3%A4lp+med+min+fastighet.&type=phone_number&app_absent=0"
+  }
+}
