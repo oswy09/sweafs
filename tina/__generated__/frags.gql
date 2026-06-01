@@ -1,0 +1,120 @@
+fragment SiteParts on Site {
+  __typename
+  meta {
+    __typename
+    title
+    description
+  }
+  logo {
+    __typename
+    label
+    accent
+  }
+  navigation {
+    __typename
+    label
+    href
+    cta
+  }
+  topContact {
+    __typename
+    phoneLabel
+    phoneHref
+    emailLabel
+    emailHref
+    whatsappLabel
+    whatsappHref
+  }
+  hero {
+    __typename
+    eyebrow
+    title
+    subtitle
+    primaryCta
+    secondaryCta
+    image
+  }
+  benefits {
+    __typename
+    title
+    body
+  }
+  servicesSection {
+    __typename
+    eyebrow
+    title
+    lead
+  }
+  services {
+    __typename
+    title
+    body
+    cta
+    reverse
+    before {
+      __typename
+      src
+      alt
+      label
+      objectPosition
+    }
+    after {
+      __typename
+      src
+      alt
+      label
+      objectPosition
+    }
+  }
+  why {
+    __typename
+    eyebrow
+    title
+    lead
+    items {
+      __typename
+      icon
+      title
+      body
+    }
+  }
+  contact {
+    __typename
+    eyebrow
+    title
+    lead
+    fields {
+      __typename
+      name
+      label
+      type
+      placeholder
+      full
+      required
+    }
+    submitLabel
+    successMessage
+    web3forms {
+      __typename
+      accessKey
+      subject
+      fromName
+      ccEmail
+    }
+  }
+  footer {
+    __typename
+    brand {
+      __typename
+      label
+      accent
+    }
+    copy
+    phoneLabel
+    phoneHref
+    emailLabel
+    emailHref
+    whatsappLabel
+    whatsappHref
+  }
+}
