@@ -32,7 +32,7 @@ jobs:
       - name: Deploy to one.com via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ${{ secrets.FTP_HOST }}
+          server: ftp.sweafs.se
           username: ${{ secrets.name }}
           password: ${{ secrets.password }}
           local-dir: ./dist/
