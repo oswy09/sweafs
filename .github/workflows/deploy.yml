@@ -34,7 +34,7 @@ jobs:
         with:
           server: ftp.sweafs.se
           username: efe.gencer@icloud.com
-          password: ${{ secrets.password }}
+          password: ${{ secrets.pass1 }}
           local-dir: ./dist/
           server-dir: /www/
           dangerous-clean-slate: false
