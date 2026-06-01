@@ -164,6 +164,43 @@
   margin-top: 0.3rem;
 }
 
+.history-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+}
+
+.history-panel {
+  margin-top: 0.25rem;
+  border: 1px solid rgba(24, 75, 122, 0.16);
+  border-radius: 12px;
+  background: rgba(244, 248, 255, 0.72);
+  padding: 0.52rem 0.62rem;
+}
+
+.history-title {
+  margin: 0 0 0.4rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #3f5f84;
+}
+
+#historyList {
+  margin: 0;
+  padding-left: 1rem;
+  max-height: 120px;
+  overflow: auto;
+  display: grid;
+  gap: 0.34rem;
+}
+
+#historyList li {
+  color: #2e4b6d;
+  font-size: 0.82rem;
+  line-height: 1.25;
+}
+
 .adm-preview-wrap {
   overflow: hidden;
   background: linear-gradient(180deg, #f5f9ff 0%, #ffffff 100%);

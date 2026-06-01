@@ -50,6 +50,15 @@ const serializedConfig = JSON.stringify({
 
         <div class="actions">
           <button id="saveBtn" type="button">Guardar online</button>
+          <div class="history-actions">
+            <button id="undoBtn" type="button" class="ghost" disabled>Deshacer</button>
+            <button id="redoBtn" type="button" class="ghost" disabled>Rehacer</button>
+          </div>
+        </div>
+
+        <div class="history-panel">
+          <p class="history-title">Historial reciente</p>
+          <ul id="historyList"></ul>
         </div>
 
         <p id="saveMessage" class="adm-message" aria-live="polite"></p>
@@ -79,6 +88,9 @@ const serializedConfig = JSON.stringify({
     const fieldValueEl = document.getElementById('fieldValue');
     const saveMessage = document.getElementById('saveMessage');
     const saveBtn = document.getElementById('saveBtn');
+    const undoBtn = document.getElementById('undoBtn');
+    const redoBtn = document.getElementById('redoBtn');
+    const historyList = document.getElementById('historyList');
     const logoutBtn = document.getElementById('logoutBtn');
     const previewFrame = document.getElementById('previewFrame');
     const loginBtn = loginForm?.querySelector('button[type="submit"]');
@@ -101,6 +113,9 @@ const serializedConfig = JSON.stringify({
     let currentTarget = null;
     let currentBinding = null;
     let previewBridgeReady = false;
+    const undoStack = [];
+    const redoStack = [];
+    const maxHistoryEntries = 20;
 
     const isElementNode = (node) => Boolean(node && node.nodeType === 1);
     const nodeTag = (node) => (isElementNode(node) ? String(node.tagName || '').toUpperCase() : '');
@@ -120,6 +135,7 @@ const serializedConfig = JSON.stringify({
 
       if (fieldValueEl instanceof HTMLTextAreaElement) {
         fieldValueEl.focus();
+        fieldValueEl.setSelectionRange(0, fieldValueEl.value.length);
       }
     };
 
@@ -209,6 +225,93 @@ const serializedConfig = JSON.stringify({
       saveMessage.classList.toggle('error', isError);
     };
 
+    const escapeAttributeValue = (value) => String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+
+    const updateButtonsState = () => {
+      if (undoBtn instanceof HTMLButtonElement) {
+        undoBtn.disabled = undoStack.length === 0;
+      }
+      if (redoBtn instanceof HTMLButtonElement) {
+        redoBtn.disabled = redoStack.length === 0;
+      }
+    };
+
+    const renderHistory = () => {
+      if (!(historyList instanceof HTMLUListElement)) return;
+
+      const latest = undoStack.slice(-6).reverse();
+      historyList.innerHTML = '';
+
+      if (!latest.length) {
+        const emptyItem = document.createElement('li');
+        emptyItem.textContent = 'Sin cambios guardados.';
+        historyList.appendChild(emptyItem);
+        updateButtonsState();
+        return;
+      }
+
+      latest.forEach((entry) => {
+        const item = document.createElement('li');
+        item.textContent = `${entry.path} -> ${entry.nextValue}`;
+        historyList.appendChild(item);
+      });
+
+      updateButtonsState();
+    };
+
+    const updatePreviewByPath = (bindingType, path, value) => {
+      const frameDoc = previewFrame?.contentDocument;
+      if (!frameDoc) return;
+
+      const bindingAttrByType = {
+        text: 'data-content-path',
+        'image-src': 'data-content-src-path',
+        'link-href': 'data-content-href-path',
+        placeholder: 'data-content-placeholder-path',
+        'image-alt': 'data-content-alt-path',
+      };
+
+      const attr = bindingAttrByType[bindingType];
+      if (!attr) return;
+
+      const selector = `[${attr}="${escapeAttributeValue(path)}"]`;
+      frameDoc.querySelectorAll(selector).forEach((element) => {
+        updatePreviewValue(element, { type: bindingType, path }, String(value ?? ''));
+      });
+    };
+
+    const persistContent = async () => {
+      if (!accessToken) {
+        setSaveMessage('Sesion expirada. Vuelve a iniciar sesion.', true);
+        return false;
+      }
+
+      const response = await fetch(`${apiBase}/site_content?on_conflict=key`, {
+        method: 'POST',
+        headers: {
+          apikey: supabaseAnonKey,
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+          Prefer: 'resolution=merge-duplicates,return=representation',
+        },
+        body: JSON.stringify([
+          {
+            key: contentKey,
+            content: currentContent,
+            updated_at: new Date().toISOString(),
+          },
+        ]),
+      });
+
+      if (!response.ok) {
+        const errorPayload = await response.json().catch(() => ({}));
+        setSaveMessage(`Error guardando: ${errorPayload.message || `HTTP ${response.status}`}`, true);
+        return false;
+      }
+
+      return true;
+    };
+
     const loadContent = async () => {
       try {
         const response = await fetch(
@@ -258,38 +361,68 @@ const serializedConfig = JSON.stringify({
       }
 
       const nextValue = fieldValueEl.value;
+      const previousValueRaw = getByPath(currentContent, currentBinding.path);
+      const previousValue = previousValueRaw == null ? '' : String(previousValueRaw);
+
+      if (previousValue === nextValue) {
+        setSaveMessage('No hay cambios para guardar.');
+        return;
+      }
+
       setByPath(currentContent, currentBinding.path, nextValue);
       updatePreviewValue(currentTarget, currentBinding, nextValue);
 
-      if (!accessToken) {
-        setSaveMessage('Sesion expirada. Vuelve a iniciar sesion.', true);
+      const persisted = await persistContent();
+      if (!persisted) {
+        setByPath(currentContent, currentBinding.path, previousValue);
+        updatePreviewValue(currentTarget, currentBinding, previousValue);
         return;
       }
 
-      const response = await fetch(`${apiBase}/site_content?on_conflict=key`, {
-        method: 'POST',
-        headers: {
-          apikey: supabaseAnonKey,
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-          Prefer: 'resolution=merge-duplicates,return=representation',
-        },
-        body: JSON.stringify([
-          {
-            key: contentKey,
-            content: currentContent,
-            updated_at: new Date().toISOString(),
-          },
-        ]),
+      undoStack.push({
+        path: currentBinding.path,
+        type: currentBinding.type,
+        previousValue,
+        nextValue,
       });
 
-      if (!response.ok) {
-        const errorPayload = await response.json().catch(() => ({}));
-        setSaveMessage(`Error guardando: ${errorPayload.message || `HTTP ${response.status}`}`, true);
+      if (undoStack.length > maxHistoryEntries) {
+        undoStack.shift();
+      }
+
+      redoStack.length = 0;
+      renderHistory();
+
+      setSaveMessage('Guardado online correctamente.');
+    };
+
+    const applyHistoryEntry = async (entry, direction) => {
+      const toValue = direction === 'undo' ? entry.previousValue : entry.nextValue;
+      const rollbackValue = direction === 'undo' ? entry.nextValue : entry.previousValue;
+
+      setByPath(currentContent, entry.path, toValue);
+      updatePreviewByPath(entry.type, entry.path, toValue);
+
+      const persisted = await persistContent();
+      if (!persisted) {
+        setByPath(currentContent, entry.path, rollbackValue);
+        updatePreviewByPath(entry.type, entry.path, rollbackValue);
         return;
       }
 
-      setSaveMessage('Guardado online correctamente.');
+      if (currentBinding && currentBinding.path === entry.path && currentBinding.type === entry.type) {
+        renderSelection();
+      }
+
+      if (direction === 'undo') {
+        redoStack.push(entry);
+        setSaveMessage('Cambio revertido correctamente.');
+      } else {
+        undoStack.push(entry);
+        setSaveMessage('Cambio rehecho correctamente.');
+      }
+
+      renderHistory();
     };
 
     const setupPreviewBridge = () => {
@@ -424,6 +557,34 @@ const serializedConfig = JSON.stringify({
       });
     });
 
+    undoBtn?.addEventListener('click', () => {
+      const entry = undoStack.pop();
+      if (!entry) {
+        renderHistory();
+        return;
+      }
+
+      applyHistoryEntry(entry, 'undo').catch((error) => {
+        undoStack.push(entry);
+        renderHistory();
+        setSaveMessage(`Error al deshacer: ${error.message}`, true);
+      });
+    });
+
+    redoBtn?.addEventListener('click', () => {
+      const entry = redoStack.pop();
+      if (!entry) {
+        renderHistory();
+        return;
+      }
+
+      applyHistoryEntry(entry, 'redo').catch((error) => {
+        redoStack.push(entry);
+        renderHistory();
+        setSaveMessage(`Error al rehacer: ${error.message}`, true);
+      });
+    });
+
     fieldValueEl?.addEventListener('input', () => {
       if (!currentBinding || !currentTarget) return;
       updatePreviewValue(currentTarget, currentBinding, fieldValueEl.value);
@@ -440,6 +601,8 @@ const serializedConfig = JSON.stringify({
     previewFrame?.addEventListener('load', () => {
       initPreviewBridge();
     });
+
+    renderHistory();
 
   </script>
 </BaseLayout>
