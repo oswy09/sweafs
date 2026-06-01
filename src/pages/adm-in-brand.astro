@@ -30,7 +30,7 @@ const serializedSite = JSON.stringify(site).replace(/</g, '\\u003c');
           <button id="logoutBtn" type="button" class="ghost">Salir</button>
         </div>
 
-        <p class="helper">Haz click en cualquier texto o imagen resaltada dentro del preview.</p>
+        <p class="helper">Pasa el mouse o haz click en un texto/imagen del preview para editarlo.</p>
 
         <div class="field-meta">
           <p><strong>Ruta:</strong> <span id="fieldPath">-</span></p>
@@ -42,8 +42,6 @@ const serializedSite = JSON.stringify(site).replace(/</g, '\\u003c');
 
         <div class="actions">
           <button id="saveBtn" type="button">Guardar online</button>
-          <button id="reloadBtn" type="button" class="ghost">Recargar desde Supabase</button>
-          <button id="downloadBtn" type="button" class="ghost">Descargar JSON</button>
         </div>
 
         <p id="saveMessage" class="adm-message" aria-live="polite"></p>
@@ -72,8 +70,6 @@ const serializedSite = JSON.stringify(site).replace(/</g, '\\u003c');
     const fieldValueEl = document.getElementById('fieldValue');
     const saveMessage = document.getElementById('saveMessage');
     const saveBtn = document.getElementById('saveBtn');
-    const reloadBtn = document.getElementById('reloadBtn');
-    const downloadBtn = document.getElementById('downloadBtn');
     const logoutBtn = document.getElementById('logoutBtn');
     const previewFrame = document.getElementById('previewFrame');
 
@@ -92,6 +88,20 @@ const serializedSite = JSON.stringify(site).replace(/</g, '\\u003c');
     let currentContent = structuredClone(fallbackContent);
     let currentTarget = null;
     let currentBinding = null;
+
+    const setActiveElement = (element) => {
+      const mappings = getMappings(element);
+      if (!mappings.length) return;
+
+      if (currentTarget && currentTarget !== element) {
+        currentTarget.removeAttribute('data-adm-selected');
+      }
+
+      currentTarget = element;
+      currentTarget.setAttribute('data-adm-selected', 'true');
+      currentBinding = mappings[0];
+      renderSelection();
+    };
 
     const getByPath = (source, path) => path.split('.').reduce((acc, segment) => {
       if (acc == null) return undefined;
@@ -245,27 +255,25 @@ const serializedSite = JSON.stringify(site).replace(/</g, '\\u003c');
       `;
       frameDoc.head.appendChild(style);
 
-      frameDoc.addEventListener('click', (event) => {
-        const target = event.target;
-        if (!(target instanceof Element)) return;
+      const pickEditable = (target) => {
+        if (!(target instanceof Element)) return null;
+        return target.closest('[data-content-path], [data-content-src-path], [data-content-href-path], [data-content-placeholder-path], [data-content-alt-path]');
+      };
 
-        const element = target.closest('[data-content-path], [data-content-src-path], [data-content-href-path], [data-content-placeholder-path], [data-content-alt-path]');
+      frameDoc.addEventListener('mouseover', (event) => {
+        const element = pickEditable(event.target);
+        if (!element) return;
+        setActiveElement(element);
+      }, true);
+
+      frameDoc.addEventListener('click', (event) => {
+        const element = pickEditable(event.target);
         if (!element) return;
 
         event.preventDefault();
         event.stopPropagation();
 
-        const mappings = getMappings(element);
-        if (!mappings.length) return;
-
-        if (currentTarget) {
-          currentTarget.removeAttribute('data-adm-selected');
-        }
-
-        currentTarget = element;
-        currentTarget.setAttribute('data-adm-selected', 'true');
-        currentBinding = mappings[0];
-        renderSelection();
+        setActiveElement(element);
       }, true);
     };
 
@@ -298,20 +306,9 @@ const serializedSite = JSON.stringify(site).replace(/</g, '\\u003c');
       });
     });
 
-    reloadBtn?.addEventListener('click', () => {
-      loadContent().catch((error) => {
-        setSaveMessage(`Error cargando: ${error.message}`, true);
-      });
-    });
-
-    downloadBtn?.addEventListener('click', () => {
-      const blob = new Blob([JSON.stringify(currentContent, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.download = 'site-content.json';
-      anchor.click();
-      URL.revokeObjectURL(url);
+    fieldValueEl?.addEventListener('input', () => {
+      if (!currentBinding || !currentTarget) return;
+      updatePreviewValue(currentTarget, currentBinding, fieldValueEl.value);
     });
 
     logoutBtn?.addEventListener('click', async () => {
