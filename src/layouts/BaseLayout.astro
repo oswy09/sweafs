@@ -13,6 +13,11 @@ const themeCss = Object.entries(themeVars)
   .join('');
 
 const serializedSite = JSON.stringify(site).replace(/</g, '\\u003c');
+const serializedRuntimeConfig = JSON.stringify({
+  supabaseUrl: import.meta.env.PUBLIC_SUPABASE_URL || '',
+  supabaseAnonKey: import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '',
+  contentKey: import.meta.env.PUBLIC_SITE_CONTENT_KEY || 'main',
+}).replace(/</g, '\\u003c');
 ---
 
 <!doctype html>
@@ -41,13 +46,14 @@ const serializedSite = JSON.stringify(site).replace(/</g, '\\u003c');
   </head>
   <body>
     <script id="site-content-fallback" type="application/json" set:html={serializedSite}></script>
+    <script id="runtime-config" type="application/json" set:html={serializedRuntimeConfig}></script>
     <slot />
 
-    <script type="module">
-      import { createClient } from '@supabase/supabase-js';
-
+    <script>
       const fallbackEl = document.getElementById('site-content-fallback');
+      const runtimeConfigEl = document.getElementById('runtime-config');
       const fallback = fallbackEl ? JSON.parse(fallbackEl.textContent || '{}') : {};
+      const runtimeConfig = runtimeConfigEl ? JSON.parse(runtimeConfigEl.textContent || '{}') : {};
 
       const getByPath = (source, path) => path.split('.').reduce((acc, segment) => {
         if (acc == null) return undefined;
@@ -108,20 +114,27 @@ const serializedSite = JSON.stringify(site).replace(/</g, '\\u003c');
       const loadRemote = async () => {
         applyContent(fallback);
 
-        const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-        const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+        const supabaseUrl = runtimeConfig.supabaseUrl || '';
+        const supabaseAnonKey = runtimeConfig.supabaseAnonKey || '';
         if (!supabaseUrl || !supabaseAnonKey) return;
 
-        const supabase = createClient(supabaseUrl, supabaseAnonKey);
-        const contentKey = import.meta.env.PUBLIC_SITE_CONTENT_KEY || 'main';
-        const { data } = await supabase
-          .from('site_content')
-          .select('content')
-          .eq('key', contentKey)
-          .maybeSingle();
+        const contentKey = runtimeConfig.contentKey || 'main';
+        const response = await fetch(
+          `${supabaseUrl}/rest/v1/site_content?key=eq.${encodeURIComponent(contentKey)}&select=content&limit=1`,
+          {
+            headers: {
+              apikey: supabaseAnonKey,
+            },
+          },
+        );
 
-        if (data?.content && typeof data.content === 'object') {
-          applyContent(data.content);
+        if (!response.ok) return;
+
+        const rows = await response.json();
+        const row = Array.isArray(rows) ? rows[0] : null;
+
+        if (row?.content && typeof row.content === 'object') {
+          applyContent(row.content);
         }
       };
 

@@ -81,6 +81,11 @@
   min-height: calc(100vh - 4rem);
 }
 
+.adm-workspace[hidden],
+.adm-card[hidden] {
+  display: none !important;
+}
+
 .adm-sidebar {
   background: #fff;
   border: 1px solid #d8e2f0;
