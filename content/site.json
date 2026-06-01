@@ -8,10 +8,23 @@
     "accent": "Fastighetsservice"
   },
   "navigation": [
-    { "label": "Tjänster", "href": "#services" },
-    { "label": "Om oss", "href": "#why" },
-    { "label": "Kontakt", "href": "#contact-form" },
-    { "label": "Begär offert", "href": "#contact-form", "cta": true }
+    {
+      "label": "Tjänster",
+      "href": "#services"
+    },
+    {
+      "label": "Om oss",
+      "href": "#why"
+    },
+    {
+      "label": "Kontakt",
+      "href": "#contact-form"
+    },
+    {
+      "label": "Begär offert",
+      "href": "#contact-form",
+      "cta": true
+    }
   ],
   "topContact": {
     "phoneLabel": "073-5131940",
@@ -24,7 +37,7 @@
   "hero": {
     "eyebrow": "Stockholms Fastighetsexperter",
     "title": "Swea Fastighetsservice",
-    "subtitle": "Vi ger era fastigheter nytt liv. Professionell taktvätt, fasadtvätt och klottersanering i Stockholmsområdet.",
+    "subtitle": "Vi ger era fastigheter nytt liv. Professionell taktvätt, fasadtvätt och klottersanering i Stockholmsområdet. Hi",
     "primaryCta": "Begär offert",
     "secondaryCta": "Se våra tjänster",
     "image": "https://res.cloudinary.com/ddqbnr9vo/image/upload/v1779639507/Estocolmo_Portada_eqeqq9.jpg"
@@ -131,11 +144,40 @@
     "title": "Begär offert",
     "lead": "Fyll i formuläret nedan så återkommer vi med en kostnadsfri offert.",
     "fields": [
-      { "name": "name", "label": "Namn", "type": "text", "placeholder": "Ditt namn", "required": true },
-      { "name": "phone", "label": "Telefonnummer", "type": "tel", "placeholder": "07X-XXX XX XX", "required": true },
-      { "name": "email", "label": "E-post", "type": "email", "placeholder": "din@email.se", "required": true },
-      { "name": "address", "label": "Adress", "type": "text", "placeholder": "Gatuadress, stad" },
-      { "name": "message", "label": "Beskrivning", "type": "textarea", "placeholder": "Beskriv vad du behöver hjälp med...", "full": true }
+      {
+        "name": "name",
+        "label": "Namn",
+        "type": "text",
+        "placeholder": "Ditt namn",
+        "required": true
+      },
+      {
+        "name": "phone",
+        "label": "Telefonnummer",
+        "type": "tel",
+        "placeholder": "07X-XXX XX XX",
+        "required": true
+      },
+      {
+        "name": "email",
+        "label": "E-post",
+        "type": "email",
+        "placeholder": "din@email.se",
+        "required": true
+      },
+      {
+        "name": "address",
+        "label": "Adress",
+        "type": "text",
+        "placeholder": "Gatuadress, stad"
+      },
+      {
+        "name": "message",
+        "label": "Beskrivning",
+        "type": "textarea",
+        "placeholder": "Beskriv vad du behöver hjälp med...",
+        "full": true
+      }
     ],
     "submitLabel": "Skicka förfrågan",
     "successMessage": "Tack! Vi återkommer inom 24 timmar.",
