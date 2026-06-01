@@ -29,12 +29,13 @@ jobs:
           TINA_TOKEN: 55d1bafcb0a9b6cd58f30a77c3e2e7bd09c484a4
           GITHUB_REF_NAME: main
 
+      - name: Install lftp
+        run: sudo apt-get install -y lftp
+
       - name: Deploy to one.com via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ftp.sweafs.se
-          username: efe.gencer@icloud.com
-          password: ${{ secrets.pass1 }}
-          local-dir: ./dist/
-          server-dir: /www/
-          dangerous-clean-slate: false
+        env:
+          FTP_PASS: ${{ secrets.pass1 }}
+        run: |
+          lftp -e "set ssl:verify-certificate false; mirror -R --delete --verbose dist/ /www/; quit" \
+               -u efe.gencer@icloud.com,$FTP_PASS \
+               ftp.sweafs.se
