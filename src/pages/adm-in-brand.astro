@@ -100,6 +100,7 @@ const serializedConfig = JSON.stringify({
     let currentContent = structuredClone(fallbackContent);
     let currentTarget = null;
     let currentBinding = null;
+    let previewBridgeReady = false;
 
     const setActiveElement = (element) => {
       const mappings = getMappings(element);
@@ -231,6 +232,12 @@ const serializedConfig = JSON.stringify({
         const message = error instanceof Error ? error.message : 'No se pudo cargar contenido.';
         currentContent = structuredClone(fallbackContent);
         renderSelection();
+
+        if (String(message).includes("Could not find the table 'public.site_content'")) {
+          setSaveMessage('Falta crear la tabla site_content en Supabase (SQL Editor). Ejecuta el script de setup y recarga.', true);
+          return;
+        }
+
         setSaveMessage(`No se pudo leer site_content en Supabase: ${message}`, true);
       }
     };
@@ -280,7 +287,13 @@ const serializedConfig = JSON.stringify({
       const frameDoc = previewFrame?.contentDocument;
       if (!frameDoc) return;
 
+      if (frameDoc.getElementById('adm-bridge-style')) {
+        previewBridgeReady = true;
+        return;
+      }
+
       const style = frameDoc.createElement('style');
+      style.id = 'adm-bridge-style';
       style.textContent = `
         [data-content-path],
         [data-content-src-path],
@@ -319,12 +332,22 @@ const serializedConfig = JSON.stringify({
 
         setActiveElement(element);
       }, true);
+
+      previewBridgeReady = true;
+    };
+
+    const initPreviewBridge = () => {
+      if (previewBridgeReady) return;
+      const frameDoc = previewFrame?.contentDocument;
+      if (!frameDoc || frameDoc.readyState === 'loading') return;
+      setupPreviewBridge();
     };
 
     const openWorkspace = async () => {
       authCard.hidden = true;
       workspace.hidden = false;
       await loadContent();
+      initPreviewBridge();
     };
 
     loginForm?.addEventListener('submit', async (event) => {
@@ -390,7 +413,7 @@ const serializedConfig = JSON.stringify({
     });
 
     previewFrame?.addEventListener('load', () => {
-      setupPreviewBridge();
+      initPreviewBridge();
     });
 
   </script>
