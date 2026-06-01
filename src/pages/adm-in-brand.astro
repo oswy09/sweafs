@@ -102,6 +102,9 @@ const serializedConfig = JSON.stringify({
     let currentBinding = null;
     let previewBridgeReady = false;
 
+    const isElementNode = (node) => Boolean(node && node.nodeType === 1);
+    const nodeTag = (node) => (isElementNode(node) ? String(node.tagName || '').toUpperCase() : '');
+
     const setActiveElement = (element) => {
       const mappings = getMappings(element);
       if (!mappings.length) return;
@@ -114,6 +117,10 @@ const serializedConfig = JSON.stringify({
       currentTarget.setAttribute('data-adm-selected', 'true');
       currentBinding = mappings[0];
       renderSelection();
+
+      if (fieldValueEl instanceof HTMLTextAreaElement) {
+        fieldValueEl.focus();
+      }
     };
 
     const getByPath = (source, path) => path.split('.').reduce((acc, segment) => {
@@ -174,23 +181,25 @@ const serializedConfig = JSON.stringify({
     const updatePreviewValue = (element, binding, value) => {
       if (!element || !binding) return;
 
+      const tag = nodeTag(element);
+
       if (binding.type === 'text') {
         element.textContent = value;
       }
 
-      if (binding.type === 'image-src' && element instanceof HTMLImageElement) {
+      if (binding.type === 'image-src' && tag === 'IMG') {
         element.src = value;
       }
 
-      if (binding.type === 'image-alt' && element instanceof HTMLImageElement) {
+      if (binding.type === 'image-alt' && tag === 'IMG') {
         element.alt = value;
       }
 
-      if (binding.type === 'link-href' && element instanceof HTMLAnchorElement) {
+      if (binding.type === 'link-href' && tag === 'A') {
         element.href = value;
       }
 
-      if (binding.type === 'placeholder' && (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement)) {
+      if (binding.type === 'placeholder' && (tag === 'INPUT' || tag === 'TEXTAREA')) {
         element.placeholder = value;
       }
     };
@@ -313,9 +322,25 @@ const serializedConfig = JSON.stringify({
       frameDoc.head.appendChild(style);
 
       const pickEditable = (target) => {
-        if (!(target instanceof Element)) return null;
-        return target.closest('[data-content-path], [data-content-src-path], [data-content-href-path], [data-content-placeholder-path], [data-content-alt-path]');
+        const origin = isElementNode(target)
+          ? target
+          : target && isElementNode(target.parentElement)
+            ? target.parentElement
+            : null;
+
+        if (!origin) return null;
+
+        return origin.closest('[data-content-path], [data-content-src-path], [data-content-href-path], [data-content-placeholder-path], [data-content-alt-path]');
       };
+
+      frameDoc.addEventListener('pointerdown', (event) => {
+        const element = pickEditable(event.target);
+        if (!element) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+        setActiveElement(element);
+      }, true);
 
       frameDoc.addEventListener('mouseover', (event) => {
         const element = pickEditable(event.target);
