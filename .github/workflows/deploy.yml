@@ -25,15 +25,15 @@ jobs:
       - name: Build site
         run: npm run build
         env:
-          TINA_CLIENT_ID: ${{ secrets.id }}
-          TINA_TOKEN: ${{ secrets.token }}
+          TINA_CLIENT_ID: bf437fba-d60c-427e-87f3-cd38cba906b3
+          TINA_TOKEN: 55d1bafcb0a9b6cd58f30a77c3e2e7bd09c484a4
           GITHUB_REF_NAME: main
 
       - name: Deploy to one.com via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ftp.sweafs.se
-          username: ${{ secrets.name }}
+          username: efe.gencer@icloud.com
           password: ${{ secrets.password }}
           local-dir: ./dist/
           server-dir: /www/
