@@ -1,5 +1,6 @@
 node_modules/
 dist/
+dist - copia/
 .astro/
 .tina/
 # tina/__generated__ debe estar en git para que TinaCloud pueda indexar
