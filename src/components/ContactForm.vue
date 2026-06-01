@@ -160,8 +160,8 @@ const handleSubmit = async (event: Event) => {
 <template>
   <form ref="formEl" class="contact-form" @submit="handleSubmit">
     <div class="form-grid">
-      <div v-for="field in fields" :key="field.name" :class="['form-field', { full: field.full }]">
-        <label :for="field.name">
+      <div v-for="(field, index) in fields" :key="field.name" :class="['form-field', { full: field.full }]">
+        <label :for="field.name" :data-content-path="`contact.fields.${index}.label`">
           {{ field.label }}
           <span v-if="field.required" class="required-indicator" aria-hidden="true">*</span>
           <span v-if="field.required" class="required-text">obligatoriskt</span>
@@ -173,6 +173,7 @@ const handleSubmit = async (event: Event) => {
           :aria-label="field.label"
           v-model="form[field.name]"
           :placeholder="field.placeholder"
+          :data-content-placeholder-path="`contact.fields.${index}.placeholder`"
           :required="field.required ?? false"
           @blur="handleFieldBlur(field)"
         ></textarea>
@@ -184,6 +185,7 @@ const handleSubmit = async (event: Event) => {
           v-model="form[field.name]"
           :type="field.type"
           :placeholder="field.placeholder"
+          :data-content-placeholder-path="`contact.fields.${index}.placeholder`"
           :required="field.required ?? false"
           :inputmode="field.type === 'tel' ? 'numeric' : undefined"
           :autocomplete="field.type === 'email' ? 'email' : field.type === 'tel' ? 'tel' : 'on'"
@@ -210,7 +212,7 @@ const handleSubmit = async (event: Event) => {
       {{ statusMessage }}
     </p>
 
-    <button class="btn-submit" type="submit" :disabled="submitting">
+    <button class="btn-submit" type="submit" :disabled="submitting" data-content-path="contact.submitLabel">
       {{ submitting ? 'Skickar...' : submitLabel }}
     </button>
   </form>

@@ -31,15 +31,16 @@ const heroImageOptimized = optimizeCloudinaryImage(site.hero.image);
           loading="eager"
           fetchpriority="high"
           decoding="async"
+          data-content-src-path="hero.image"
         />
       </div>
       <div class="hero-content">
-        <p class="hero-eyebrow">{site.hero.eyebrow}</p>
-        <h1 class="hero-title animate-title">{site.hero.title}</h1>
-        <p class="hero-sub animate-title">{site.hero.subtitle}</p>
+        <p class="hero-eyebrow" data-content-path="hero.eyebrow">{site.hero.eyebrow}</p>
+        <h1 class="hero-title animate-title" data-content-path="hero.title">{site.hero.title}</h1>
+        <p class="hero-sub animate-title" data-content-path="hero.subtitle">{site.hero.subtitle}</p>
         <div class="hero-btns">
-          <a href="#contact-form" class="btn-primary animate-btn"><i class="bi bi-envelope-fill" aria-hidden="true"></i> {site.hero.primaryCta}</a>
-          <a href="#services" class="btn-outline animate-btn">{site.hero.secondaryCta}</a>
+          <a href="#contact-form" class="btn-primary animate-btn"><i class="bi bi-envelope-fill" aria-hidden="true"></i> <span data-content-path="hero.primaryCta">{site.hero.primaryCta}</span></a>
+          <a href="#services" class="btn-outline animate-btn" data-content-path="hero.secondaryCta">{site.hero.secondaryCta}</a>
         </div>
       </div>
       <a href="#services" class="hero-scroll">↓</a>
@@ -47,10 +48,10 @@ const heroImageOptimized = optimizeCloudinaryImage(site.hero.image);
 
     <div class="benefits-band">
       <div class="benefits-inner">
-        {site.benefits.map((benefit) => (
+        {site.benefits.map((benefit, index) => (
           <article class="benefit-card reveal">
-            <p class="benefit-card-title">{benefit.title}</p>
-            <p>{benefit.body}</p>
+            <p class="benefit-card-title" data-content-path={`benefits.${index}.title`}>{benefit.title}</p>
+            <p data-content-path={`benefits.${index}.body`}>{benefit.body}</p>
           </article>
         ))}
       </div>
@@ -58,38 +59,38 @@ const heroImageOptimized = optimizeCloudinaryImage(site.hero.image);
 
     <section id="services">
       <div class="section-inner">
-        <p class="section-eyebrow">{site.servicesSection.eyebrow}</p>
-        <h2 class="section-title animate-title">{site.servicesSection.title}</h2>
-        <p class="section-lead">{site.servicesSection.lead}</p>
+        <p class="section-eyebrow" data-content-path="servicesSection.eyebrow">{site.servicesSection.eyebrow}</p>
+        <h2 class="section-title animate-title" data-content-path="servicesSection.title">{site.servicesSection.title}</h2>
+        <p class="section-lead" data-content-path="servicesSection.lead">{site.servicesSection.lead}</p>
 
         {featuredService ? (
           <div class:list={["service-block reveal", { reverse: featuredService.reverse }]}>
             <div class="service-text">
-              <h3 class="animate-title">{featuredService.title}</h3>
-              <p>{featuredService.body}</p>
-              <a href="#contact" class="btn-navy animate-btn">{featuredService.cta}</a>
+              <h3 class="animate-title" data-content-path="services.0.title">{featuredService.title}</h3>
+              <p data-content-path="services.0.body">{featuredService.body}</p>
+              <a href="#contact" class="btn-navy animate-btn" data-content-path="services.0.cta">{featuredService.cta}</a>
             </div>
             <div class="service-gallery" aria-label="Före och efter bilder">
               <p class="service-gallery-title">FORE / EFTER</p>
               <figure class="service-photo-card">
-                <img src={featuredService.before.src} alt={featuredService.before.alt} loading="lazy" decoding="async" width="1200" height="800" style={`object-position: ${featuredService.before.objectPosition};`} />
-                <figcaption class="service-photo-tag">{featuredService.before.label}</figcaption>
+                <img src={featuredService.before.src} alt={featuredService.before.alt} loading="lazy" decoding="async" width="1200" height="800" style={`object-position: ${featuredService.before.objectPosition};`} data-content-src-path="services.0.before.src" data-content-alt-path="services.0.before.alt" />
+                <figcaption class="service-photo-tag" data-content-path="services.0.before.label">{featuredService.before.label}</figcaption>
               </figure>
               <figure class="service-photo-card">
-                <img src={featuredService.after.src} alt={featuredService.after.alt} loading="lazy" decoding="async" width="1200" height="800" style={`object-position: ${featuredService.after.objectPosition};`} />
-                <figcaption class="service-photo-tag">{featuredService.after.label}</figcaption>
+                <img src={featuredService.after.src} alt={featuredService.after.alt} loading="lazy" decoding="async" width="1200" height="800" style={`object-position: ${featuredService.after.objectPosition};`} data-content-src-path="services.0.after.src" data-content-alt-path="services.0.after.alt" />
+                <figcaption class="service-photo-tag" data-content-path="services.0.after.label">{featuredService.after.label}</figcaption>
               </figure>
             </div>
           </div>
         ) : null}
 
         <div class="service-simple-grid">
-          {simpleServices.map((service) => (
+          {simpleServices.map((service, index) => (
             <article class="service-simple-item reveal">
               <div class="service-text">
-                <h3 class="animate-title">{service.title}</h3>
-                <p>{service.body}</p>
-                <a href="#contact" class="btn-navy animate-btn">{service.cta}</a>
+                <h3 class="animate-title" data-content-path={`services.${index + 1}.title`}>{service.title}</h3>
+                <p data-content-path={`services.${index + 1}.body`}>{service.body}</p>
+                <a href="#contact" class="btn-navy animate-btn" data-content-path={`services.${index + 1}.cta`}>{service.cta}</a>
               </div>
             </article>
           ))}
@@ -99,15 +100,15 @@ const heroImageOptimized = optimizeCloudinaryImage(site.hero.image);
 
     <section id="why">
       <div class="section-inner">
-        <p class="section-eyebrow">{site.why.eyebrow}</p>
-        <h2 class="section-title animate-title">{site.why.title}</h2>
-        <p class="section-lead">{site.why.lead}</p>
+        <p class="section-eyebrow" data-content-path="why.eyebrow">{site.why.eyebrow}</p>
+        <h2 class="section-title animate-title" data-content-path="why.title">{site.why.title}</h2>
+        <p class="section-lead" data-content-path="why.lead">{site.why.lead}</p>
         <div class="why-grid">
           {site.why.items.map((item, index) => (
             <div class="why-card reveal">
               <div class="why-icon"><i class:list={["bi", whyIcons[index] || 'bi-circle']} aria-hidden="true"></i></div>
-              <h3>{item.title}</h3>
-              <p>{item.body}</p>
+              <h3 data-content-path={`why.items.${index}.title`}>{item.title}</h3>
+              <p data-content-path={`why.items.${index}.body`}>{item.body}</p>
             </div>
           ))}
         </div>
@@ -116,12 +117,12 @@ const heroImageOptimized = optimizeCloudinaryImage(site.hero.image);
 
     <section id="contact">
       <div class="section-inner">
-        <p class="section-eyebrow">{site.contact.eyebrow}</p>
-        <h2 class="section-title animate-title">{site.contact.title}</h2>
-        <p class="section-lead">{site.contact.lead}</p>
+        <p class="section-eyebrow" data-content-path="contact.eyebrow">{site.contact.eyebrow}</p>
+        <h2 class="section-title animate-title" data-content-path="contact.title">{site.contact.title}</h2>
+        <p class="section-lead" data-content-path="contact.lead">{site.contact.lead}</p>
         <div class="contact-quick-actions">
-          <a class="contact-pill" href={site.footer.phoneHref}><i class="bi bi-telephone-fill" aria-hidden="true"></i> {site.footer.phoneLabel}</a>
-          <a class="contact-pill" href={site.footer.emailHref}><i class="bi bi-envelope-fill" aria-hidden="true"></i> {site.footer.emailLabel}</a>
+          <a class="contact-pill" href={site.footer.phoneHref} data-content-href-path="footer.phoneHref"><i class="bi bi-telephone-fill" aria-hidden="true"></i> <span data-content-path="footer.phoneLabel">{site.footer.phoneLabel}</span></a>
+          <a class="contact-pill" href={site.footer.emailHref} data-content-href-path="footer.emailHref"><i class="bi bi-envelope-fill" aria-hidden="true"></i> <span data-content-path="footer.emailLabel">{site.footer.emailLabel}</span></a>
         </div>
         <div id="contact-form" class="contact-wrapper">
           <ContactForm
@@ -140,22 +141,22 @@ const heroImageOptimized = optimizeCloudinaryImage(site.hero.image);
   <footer>
     <div class="footer-inner">
       <div class="footer-block footer-brand-block">
-        <p class="footer-brand">{site.footer.brand.label} <span>{site.footer.brand.accent}</span></p>
-        <p class="footer-copy">&copy; {new Date().getFullYear()} {site.footer.brand.label} {site.footer.brand.accent}. {site.footer.copy}</p>
+        <p class="footer-brand"><span data-content-path="footer.brand.label">{site.footer.brand.label}</span> <span data-content-path="footer.brand.accent">{site.footer.brand.accent}</span></p>
+        <p class="footer-copy">&copy; {new Date().getFullYear()} <span data-content-path="footer.brand.label">{site.footer.brand.label}</span> <span data-content-path="footer.brand.accent">{site.footer.brand.accent}</span>. <span data-content-path="footer.copy">{site.footer.copy}</span></p>
       </div>
       <div class="footer-block footer-links">
-        <a href="#services">Tjänster</a>
-        <a href="#why">Om oss</a>
-        <a href="#contact">Begär offert</a>
+        <a href="#services" data-content-path="navigation.0.label" data-content-href-path="navigation.0.href">Tjänster</a>
+        <a href="#why" data-content-path="navigation.1.label" data-content-href-path="navigation.1.href">Om oss</a>
+        <a href="#contact" data-content-path="navigation.3.label" data-content-href-path="navigation.3.href">Begär offert</a>
       </div>
       <div class="footer-block footer-contact">
-        <a href={site.footer.phoneHref}><i class="bi bi-telephone-fill" aria-hidden="true"></i> {site.footer.phoneLabel}</a>
-        <a href={site.footer.emailHref}><i class="bi bi-envelope-fill" aria-hidden="true"></i> {site.footer.emailLabel}</a>
+        <a href={site.footer.phoneHref} data-content-href-path="footer.phoneHref"><i class="bi bi-telephone-fill" aria-hidden="true"></i> <span data-content-path="footer.phoneLabel">{site.footer.phoneLabel}</span></a>
+        <a href={site.footer.emailHref} data-content-href-path="footer.emailHref"><i class="bi bi-envelope-fill" aria-hidden="true"></i> <span data-content-path="footer.emailLabel">{site.footer.emailLabel}</span></a>
       </div>
     </div>
   </footer>
 
-  <a class="whatsapp-float" href={site.footer.whatsappHref} target="_blank" rel="noopener noreferrer" aria-label="Contactar por WhatsApp">
+  <a class="whatsapp-float" href={site.footer.whatsappHref} target="_blank" rel="noopener noreferrer" aria-label="Contactar por WhatsApp" data-content-href-path="footer.whatsappHref">
     <i class="bi bi-whatsapp" aria-hidden="true"></i>
   </a>
 

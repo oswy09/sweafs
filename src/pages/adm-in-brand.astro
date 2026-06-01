@@ -1,0 +1,334 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { site } from '../data/site';
+import '../styles/adm-in-brand.css';
+
+const serializedSite = JSON.stringify(site).replace(/</g, '\\u003c');
+---
+
+<BaseLayout title="Adm-in-brand" description="Panel privado para editar contenido en vivo.">
+  <main class="adm-shell">
+    <section class="adm-card" id="authCard">
+      <h1>Adm-in-brand</h1>
+      <p>Acceso privado al editor visual.</p>
+      <form id="loginForm" class="adm-form">
+        <label for="adminEmail">Email</label>
+        <input id="adminEmail" type="email" placeholder="admin@tu-dominio.com" required />
+
+        <label for="adminPassword">Password</label>
+        <input id="adminPassword" type="password" placeholder="Tu clave" required />
+
+        <button type="submit">Entrar</button>
+      </form>
+      <p id="authMessage" class="adm-message" aria-live="polite"></p>
+    </section>
+
+    <section class="adm-workspace" id="workspace" hidden>
+      <aside class="adm-sidebar">
+        <div class="adm-sidebar-head">
+          <h2>Editor visual</h2>
+          <button id="logoutBtn" type="button" class="ghost">Salir</button>
+        </div>
+
+        <p class="helper">Haz click en cualquier texto o imagen resaltada dentro del preview.</p>
+
+        <div class="field-meta">
+          <p><strong>Ruta:</strong> <span id="fieldPath">-</span></p>
+          <p><strong>Tipo:</strong> <span id="fieldType">-</span></p>
+        </div>
+
+        <label for="fieldValue">Nuevo valor</label>
+        <textarea id="fieldValue" rows="8" placeholder="Selecciona un elemento para editar"></textarea>
+
+        <div class="actions">
+          <button id="saveBtn" type="button">Guardar online</button>
+          <button id="reloadBtn" type="button" class="ghost">Recargar desde Supabase</button>
+          <button id="downloadBtn" type="button" class="ghost">Descargar JSON</button>
+        </div>
+
+        <p id="saveMessage" class="adm-message" aria-live="polite"></p>
+      </aside>
+
+      <div class="adm-preview-wrap">
+        <iframe id="previewFrame" src="/?adm-preview=1" title="Vista previa del sitio"></iframe>
+      </div>
+    </section>
+  </main>
+
+  <script id="adm-fallback" type="application/json" set:html={serializedSite}></script>
+
+  <script type="module">
+    import { createClient } from '@supabase/supabase-js';
+
+    const fallbackEl = document.getElementById('adm-fallback');
+    const fallbackContent = fallbackEl ? JSON.parse(fallbackEl.textContent || '{}') : {};
+
+    const loginForm = document.getElementById('loginForm');
+    const authMessage = document.getElementById('authMessage');
+    const authCard = document.getElementById('authCard');
+    const workspace = document.getElementById('workspace');
+    const fieldPathEl = document.getElementById('fieldPath');
+    const fieldTypeEl = document.getElementById('fieldType');
+    const fieldValueEl = document.getElementById('fieldValue');
+    const saveMessage = document.getElementById('saveMessage');
+    const saveBtn = document.getElementById('saveBtn');
+    const reloadBtn = document.getElementById('reloadBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const previewFrame = document.getElementById('previewFrame');
+
+    const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+    const contentKey = import.meta.env.PUBLIC_SITE_CONTENT_KEY || 'main';
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      authMessage.textContent = 'Faltan PUBLIC_SUPABASE_URL y PUBLIC_SUPABASE_ANON_KEY en variables de entorno.';
+      loginForm?.setAttribute('hidden', 'hidden');
+      throw new Error('Missing Supabase env vars');
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    let currentContent = structuredClone(fallbackContent);
+    let currentTarget = null;
+    let currentBinding = null;
+
+    const getByPath = (source, path) => path.split('.').reduce((acc, segment) => {
+      if (acc == null) return undefined;
+      return acc[segment];
+    }, source);
+
+    const setByPath = (source, path, value) => {
+      const segments = path.split('.');
+      let cursor = source;
+
+      for (let i = 0; i < segments.length - 1; i += 1) {
+        const key = segments[i];
+        const next = segments[i + 1];
+        if (cursor[key] == null) {
+          cursor[key] = /^\d+$/.test(next) ? [] : {};
+        }
+        cursor = cursor[key];
+      }
+
+      cursor[segments[segments.length - 1]] = value;
+    };
+
+    const getMappings = (element) => {
+      const raw = [
+        { attr: 'data-content-path', type: 'text' },
+        { attr: 'data-content-src-path', type: 'image-src' },
+        { attr: 'data-content-href-path', type: 'link-href' },
+        { attr: 'data-content-placeholder-path', type: 'placeholder' },
+        { attr: 'data-content-alt-path', type: 'image-alt' },
+      ];
+
+      return raw
+        .map((item) => {
+          const path = element.getAttribute(item.attr);
+          if (!path) return null;
+          return { ...item, path };
+        })
+        .filter(Boolean);
+    };
+
+    const renderSelection = () => {
+      if (!currentBinding) {
+        fieldPathEl.textContent = '-';
+        fieldTypeEl.textContent = '-';
+        fieldValueEl.value = '';
+        fieldValueEl.placeholder = 'Selecciona un elemento para editar';
+        return;
+      }
+
+      fieldPathEl.textContent = currentBinding.path;
+      fieldTypeEl.textContent = currentBinding.type;
+      const value = getByPath(currentContent, currentBinding.path);
+      fieldValueEl.value = value == null ? '' : String(value);
+      fieldValueEl.placeholder = 'Escribe el nuevo valor y presiona Guardar online';
+    };
+
+    const updatePreviewValue = (element, binding, value) => {
+      if (!element || !binding) return;
+
+      if (binding.type === 'text') {
+        element.textContent = value;
+      }
+
+      if (binding.type === 'image-src' && element instanceof HTMLImageElement) {
+        element.src = value;
+      }
+
+      if (binding.type === 'image-alt' && element instanceof HTMLImageElement) {
+        element.alt = value;
+      }
+
+      if (binding.type === 'link-href' && element instanceof HTMLAnchorElement) {
+        element.href = value;
+      }
+
+      if (binding.type === 'placeholder' && (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement)) {
+        element.placeholder = value;
+      }
+    };
+
+    const setSaveMessage = (message, isError = false) => {
+      saveMessage.textContent = message;
+      saveMessage.classList.toggle('error', isError);
+    };
+
+    const loadContent = async () => {
+      const { data, error } = await supabase
+        .from('site_content')
+        .select('content')
+        .eq('key', contentKey)
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.content && typeof data.content === 'object') {
+        currentContent = data.content;
+      } else {
+        currentContent = structuredClone(fallbackContent);
+      }
+
+      renderSelection();
+      setSaveMessage('Contenido cargado desde Supabase.');
+    };
+
+    const saveContent = async () => {
+      if (!currentBinding || !currentTarget) {
+        setSaveMessage('Selecciona primero un elemento del preview.', true);
+        return;
+      }
+
+      const nextValue = fieldValueEl.value;
+      setByPath(currentContent, currentBinding.path, nextValue);
+      updatePreviewValue(currentTarget, currentBinding, nextValue);
+
+      const { error } = await supabase.from('site_content').upsert({
+        key: contentKey,
+        content: currentContent,
+        updated_at: new Date().toISOString(),
+      });
+
+      if (error) {
+        setSaveMessage(`Error guardando: ${error.message}`, true);
+        return;
+      }
+
+      setSaveMessage('Guardado online correctamente.');
+    };
+
+    const setupPreviewBridge = () => {
+      const frameDoc = previewFrame?.contentDocument;
+      if (!frameDoc) return;
+
+      const style = frameDoc.createElement('style');
+      style.textContent = `
+        [data-content-path],
+        [data-content-src-path],
+        [data-content-href-path],
+        [data-content-placeholder-path],
+        [data-content-alt-path] {
+          outline: 2px dashed rgba(200, 145, 58, 0.25);
+          outline-offset: 2px;
+          cursor: pointer;
+        }
+
+        [data-adm-selected="true"] {
+          outline: 2px solid #1B4E81 !important;
+          box-shadow: 0 0 0 4px rgba(27, 78, 129, 0.14);
+        }
+      `;
+      frameDoc.head.appendChild(style);
+
+      frameDoc.addEventListener('click', (event) => {
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+
+        const element = target.closest('[data-content-path], [data-content-src-path], [data-content-href-path], [data-content-placeholder-path], [data-content-alt-path]');
+        if (!element) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const mappings = getMappings(element);
+        if (!mappings.length) return;
+
+        if (currentTarget) {
+          currentTarget.removeAttribute('data-adm-selected');
+        }
+
+        currentTarget = element;
+        currentTarget.setAttribute('data-adm-selected', 'true');
+        currentBinding = mappings[0];
+        renderSelection();
+      }, true);
+    };
+
+    const openWorkspace = async () => {
+      authCard.hidden = true;
+      workspace.hidden = false;
+      await loadContent();
+    };
+
+    loginForm?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const email = document.getElementById('adminEmail')?.value || '';
+      const password = document.getElementById('adminPassword')?.value || '';
+
+      authMessage.textContent = 'Validando acceso...';
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        authMessage.textContent = `Acceso denegado: ${error.message}`;
+        return;
+      }
+
+      authMessage.textContent = '';
+      await openWorkspace();
+    });
+
+    saveBtn?.addEventListener('click', () => {
+      saveContent().catch((error) => {
+        setSaveMessage(`Error guardando: ${error.message}`, true);
+      });
+    });
+
+    reloadBtn?.addEventListener('click', () => {
+      loadContent().catch((error) => {
+        setSaveMessage(`Error cargando: ${error.message}`, true);
+      });
+    });
+
+    downloadBtn?.addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(currentContent, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = 'site-content.json';
+      anchor.click();
+      URL.revokeObjectURL(url);
+    });
+
+    logoutBtn?.addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      workspace.hidden = true;
+      authCard.hidden = false;
+      authMessage.textContent = 'Sesion cerrada.';
+      setSaveMessage('');
+    });
+
+    previewFrame?.addEventListener('load', () => {
+      setupPreviewBridge();
+    });
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData?.session) {
+      await openWorkspace();
+    }
+  </script>
+</BaseLayout>

@@ -94,22 +94,27 @@ onBeforeUnmount(() => {
 <template>
   <div class="top-contact">
     <div class="top-contact-inner">
-      <a class="top-contact-pill" :href="topContact.emailHref">
+      <a class="top-contact-pill" :href="topContact.emailHref" data-content-href-path="topContact.emailHref">
         <i class="bi bi-envelope-fill" aria-hidden="true"></i>
-        <span>{{ topContact.emailLabel }}</span>
+        <span data-content-path="topContact.emailLabel">{{ topContact.emailLabel }}</span>
       </a>
-      <a class="top-contact-pill" :href="topContact.phoneHref">
+      <a class="top-contact-pill" :href="topContact.phoneHref" data-content-href-path="topContact.phoneHref">
         <i class="bi bi-telephone-fill" aria-hidden="true"></i>
-        <span>{{ topContact.phoneLabel }}</span>
+        <span data-content-path="topContact.phoneLabel">{{ topContact.phoneLabel }}</span>
       </a>
     </div>
   </div>
 
   <nav id="navbar" :class="{ scrolled }">
-    <a href="#hero" class="nav-logo"><span class="nav-logo-main">{{ logo.label }}</span> <span>{{ logo.accent }}</span></a>
+    <a href="#hero" class="nav-logo"><span class="nav-logo-main" data-content-path="logo.label">{{ logo.label }}</span> <span data-content-path="logo.accent">{{ logo.accent }}</span></a>
     <ul class="nav-links">
-      <li v-for="link in links" :key="link.href">
-        <a :href="link.href" :class="{ 'nav-cta': link.cta }">{{ link.label }}</a>
+      <li v-for="(link, index) in links" :key="link.href">
+        <a
+          :href="link.href"
+          :class="{ 'nav-cta': link.cta }"
+          :data-content-path="`navigation.${index}.label`"
+          :data-content-href-path="`navigation.${index}.href`"
+        >{{ link.label }}</a>
       </li>
     </ul>
     <button
@@ -125,7 +130,15 @@ onBeforeUnmount(() => {
   </nav>
 
   <div id="mobileMenu" class="mobile-menu" :class="{ open: menuOpen }">
-    <a v-for="link in links" :key="link.href" :href="link.href" :class="{ 'nav-cta': link.cta }" @click="closeMobile">
+    <a
+      v-for="(link, index) in links"
+      :key="link.href"
+      :href="link.href"
+      :class="{ 'nav-cta': link.cta }"
+      :data-content-path="`navigation.${index}.label`"
+      :data-content-href-path="`navigation.${index}.href`"
+      @click="closeMobile"
+    >
       {{ link.label }}
     </a>
   </div>

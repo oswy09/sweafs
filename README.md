@@ -8,7 +8,7 @@ Astro + Vue rewrite of the original landing page in `swea-fastighetsservice.html
 - The mobile nav and contact form are Vue components.
 - Theme colors are exposed as CSS variables from one place.
 - The style guide section only appears in development to keep the public page clean.
-- Tina CMS schema is configured in `tina/config.ts` so titles, texts and images are editable from CMS.
+- A custom editor is available at `/adm-in-brand` with live preview and Supabase-backed online updates.
 
 ## Run
 
@@ -17,36 +17,69 @@ npm install
 npm run dev
 ```
 
-## Tina CMS
+## Adm-in-brand (Supabase)
 
-1. Install dependencies:
+1. Create a Supabase project and set env vars from `.env.example`.
 
-```bash
-npm install
+2. Create table and policies (SQL):
+
+```sql
+create table if not exists public.site_content (
+	key text primary key,
+	content jsonb not null,
+	updated_at timestamptz not null default now()
+);
+
+alter table public.site_content enable row level security;
+
+create policy "public_read_site_content"
+on public.site_content
+for select
+to anon, authenticated
+using (true);
+
+create policy "authenticated_update_site_content"
+on public.site_content
+for insert
+to authenticated
+with check (true);
+
+create policy "authenticated_modify_site_content"
+on public.site_content
+for update
+to authenticated
+using (true)
+with check (true);
 ```
 
-2. Start Astro + Tina editor:
+3. Seed initial content row:
 
 ```bash
-npm run dev:tina
+npm run dev
 ```
 
-3. Open the Tina admin UI at `/admin/index.html`.
+Then insert one row in Supabase SQL editor:
 
-4. Editable source document:
+```sql
+insert into public.site_content (key, content)
+values ('main', '{}'::jsonb)
+on conflict (key) do nothing;
+```
 
-- `content/site.json`
+4. Create an admin user in Supabase Authentication (email/password).
 
-## Tina Cloud (for deployment)
+5. Open `/adm-in-brand`, login, click on the preview and save changes.
 
-Set environment variables in your host (for example on Netlify/Vercel):
+## Deployment
 
-- `TINA_CLIENT_ID`
-- `TINA_TOKEN`
-- `GITHUB_REF_NAME` (optional, branch fallback)
+Set these variables in your host:
 
-Build command for production with Tina admin:
+- `PUBLIC_SUPABASE_URL`
+- `PUBLIC_SUPABASE_ANON_KEY`
+- `PUBLIC_SITE_CONTENT_KEY` (optional, defaults to `main`)
+
+Build command:
 
 ```bash
-npm run build:tina
+npm run build
 ```

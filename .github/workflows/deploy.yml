@@ -25,9 +25,9 @@ jobs:
       - name: Build site
         run: npm run build
         env:
-          TINA_CLIENT_ID: bf437fba-d60c-427e-87f3-cd38cba906b3
-          TINA_TOKEN: 55d1bafcb0a9b6cd58f30a77c3e2e7bd09c484a4
-          GITHUB_REF_NAME: main
+          PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.PUBLIC_SUPABASE_ANON_KEY }}
+          PUBLIC_SITE_CONTENT_KEY: main
 
       - name: Install lftp
         run: sudo apt-get install -y lftp
