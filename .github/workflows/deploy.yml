@@ -25,16 +25,16 @@ jobs:
       - name: Build site
         run: npm run build
         env:
-          TINA_CLIENT_ID: ${{ secrets.TINA_CLIENT_ID }}
-          TINA_TOKEN: ${{ secrets.TINA_TOKEN }}
+          TINA_CLIENT_ID: ${{ secrets.id }}
+          TINA_TOKEN: ${{ secrets.token }}
           GITHUB_REF_NAME: main
 
       - name: Deploy to one.com via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_HOST }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
+          username: ${{ secrets.name }}
+          password: ${{ secrets.password }}
           local-dir: ./dist/
           server-dir: /www/
           dangerous-clean-slate: false
