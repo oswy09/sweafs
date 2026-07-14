@@ -97,10 +97,10 @@ const serializedConfig = JSON.stringify({
     const previewFrame = document.getElementById('previewFrame');
     const loginBtn = loginForm?.querySelector('button[type="submit"]');
 
-    const supabaseUrl = config.supabaseUrl || '';
-    const supabaseAnonKey = config.supabaseAnonKey || '';
-    const contentKey = config.contentKey || 'main';
-    const netlifyBuildHook = config.netlifyBuildHook || '';
+    const supabaseUrl = (config.supabaseUrl || '').trim();
+    const supabaseAnonKey = (config.supabaseAnonKey || '').trim().replace(/[^\x20-\x7E]/g, '');
+    const contentKey = (config.contentKey || 'main').trim();
+    const netlifyBuildHook = (config.netlifyBuildHook || '').trim();
 
     const apiBase = `${supabaseUrl}/rest/v1`;
     const authBase = `${supabaseUrl}/auth/v1`;
