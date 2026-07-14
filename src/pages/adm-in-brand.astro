@@ -7,10 +7,12 @@ const serializedSite = JSON.stringify(site).replace(/</g, '\\u003c');
 const publicSupabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || '';
 const publicSupabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
 const publicSiteContentKey = import.meta.env.PUBLIC_SITE_CONTENT_KEY || 'main';
+const netlifyBuildHook = import.meta.env.NETLIFY_BUILD_HOOK_URL || '';
 const serializedConfig = JSON.stringify({
   supabaseUrl: publicSupabaseUrl,
   supabaseAnonKey: publicSupabaseAnonKey,
   contentKey: publicSiteContentKey,
+  netlifyBuildHook,
 }).replace(/</g, '\\u003c');
 ---
 
@@ -98,6 +100,7 @@ const serializedConfig = JSON.stringify({
     const supabaseUrl = config.supabaseUrl || '';
     const supabaseAnonKey = config.supabaseAnonKey || '';
     const contentKey = config.contentKey || 'main';
+    const netlifyBuildHook = config.netlifyBuildHook || '';
 
     const apiBase = `${supabaseUrl}/rest/v1`;
     const authBase = `${supabaseUrl}/auth/v1`;
@@ -307,6 +310,10 @@ const serializedConfig = JSON.stringify({
         const errorPayload = await response.json().catch(() => ({}));
         setSaveMessage(`Error guardando: ${errorPayload.message || `HTTP ${response.status}`}`, true);
         return false;
+      }
+
+      if (netlifyBuildHook) {
+        fetch(netlifyBuildHook, { method: 'POST' }).catch(() => {});
       }
 
       return true;
