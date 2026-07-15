@@ -63,6 +63,7 @@ const BUILD_HOOK   = import.meta.env.NETLIFY_BUILD_HOOK_URL ?? '';
     <div class="adm-topbar-right">
       <span class="adm-status-badge" id="statusBadge">Connected</span>
       <button class="btn-topbar pub" id="publishBtn">↑ Publicar sitio</button>
+      <div class="adm-avatar" id="userAvatar" title=""></div>
       <button class="btn-topbar" id="logoutBtn">Sign out</button>
     </div>
   </header>
@@ -469,8 +470,7 @@ const BUILD_HOOK   = import.meta.env.NETLIFY_BUILD_HOOK_URL ?? '';
           <div class="adm-section-card">
             <div class="adm-section-card-head"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><h3>Manage users</h3></div>
             <div class="adm-section-card-body">
-              <p style="font-size:.82rem;color:var(--muted);line-height:1.6">To add or remove users, use the Supabase dashboard → Authentication → Users.</p>
-              <a id="supabaseAuthLink" href="#" target="_blank" rel="noopener" style="display:inline-block;margin-top:.6rem;font-size:.8rem;color:var(--blue);text-decoration:none;border:1px solid var(--border);border-radius:3px;padding:.35rem .75rem;">Open Supabase Auth →</a>
+              <a id="supabaseAuthLink" href="#" target="_blank" rel="noopener" style="display:inline-block;font-size:.8rem;color:var(--blue);text-decoration:none;border:1px solid var(--border);border-radius:3px;padding:.35rem .75rem;">Open Supabase Auth →</a>
             </div>
           </div>
         </div>
@@ -489,6 +489,19 @@ const HOOK   = BUILD_HOOK ?? '';
 let accessToken = null;
 let site = {};
 let hist = [], histIdx = -1;
+
+function getInitials(email) {
+  const name = email.split('@')[0];
+  const parts = name.split(/[._-]/);
+  return parts.length >= 2
+    ? (parts[0][0] + parts[1][0]).toUpperCase()
+    : name.slice(0,2).toUpperCase();
+}
+function setAvatar(email) {
+  const av = document.getElementById('userAvatar');
+  av.textContent = getInitials(email);
+  av.title = email;
+}
 
 const sbH = () => ({
   apikey: SB_KEY,
@@ -533,11 +546,31 @@ const admApp = document.getElementById('admApp');
 const loginBtn = document.getElementById('loginBtn');
 const loginMsg = document.getElementById('loginMsg');
 
+/* ── AUTO-LOGIN from localStorage ── */
+(function() {
+  const saved = localStorage.getItem('adm_token');
+  const savedEmail = localStorage.getItem('adm_email');
+  if (saved && savedEmail) {
+    try {
+      const payload = JSON.parse(atob(saved.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+      if (payload.exp * 1000 > Date.now()) {
+        accessToken = saved;
+        loginScreen.hidden = true; admApp.hidden = false;
+        setAvatar(savedEmail);
+        initApp();
+        return;
+      }
+    } catch(e) {}
+    localStorage.removeItem('adm_token');
+    localStorage.removeItem('adm_email');
+  }
+})();
+
 loginBtn.addEventListener('click', async () => {
   const email = document.getElementById('loginEmail').value.trim();
   const pw    = document.getElementById('loginPass').value;
-  if (!email || !pw) { loginMsg.textContent = 'Completa todos los campos'; loginMsg.className = 'adm-msg error'; return; }
-  loginBtn.disabled = true; loginBtn.textContent = 'Entrando...';
+  if (!email || !pw) { loginMsg.textContent = 'Fill in all fields'; loginMsg.className = 'adm-msg error'; return; }
+  loginBtn.disabled = true; loginBtn.textContent = 'Signing in...';
   loginMsg.textContent = ''; loginMsg.className = 'adm-msg';
   try {
     const d = await sbLogin(email, pw);
@@ -546,6 +579,9 @@ loginBtn.addEventListener('click', async () => {
       loginMsg.className = 'adm-msg error';
     } else {
       accessToken = d.access_token;
+      localStorage.setItem('adm_token', d.access_token);
+      localStorage.setItem('adm_email', email);
+      setAvatar(email);
       loginScreen.hidden = true; admApp.hidden = false;
       await initApp();
     }
@@ -553,7 +589,12 @@ loginBtn.addEventListener('click', async () => {
   finally { loginBtn.disabled = false; loginBtn.textContent = 'Sign in'; }
 });
 document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') loginBtn.click(); });
-document.getElementById('logoutBtn').addEventListener('click', () => { accessToken = null; admApp.hidden = true; loginScreen.hidden = false; });
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  accessToken = null;
+  localStorage.removeItem('adm_token');
+  localStorage.removeItem('adm_email');
+  admApp.hidden = true; loginScreen.hidden = false;
+});
 
 /* ── SIDEBAR TOGGLE ── */
 document.getElementById('sidebarToggle').addEventListener('click', () => admApp.classList.toggle('sidebar-collapsed'));
