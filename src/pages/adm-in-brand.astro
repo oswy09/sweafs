@@ -1,615 +1,952 @@
 ---
-import BaseLayout from '../layouts/BaseLayout.astro';
-import { site } from '../data/site';
 import '../styles/adm-in-brand.css';
-
-const serializedSite = JSON.stringify(site).replace(/</g, '\\u003c');
-const publicSupabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || '';
-const publicSupabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
-const publicSiteContentKey = import.meta.env.PUBLIC_SITE_CONTENT_KEY || 'main';
-const netlifyBuildHook = import.meta.env.NETLIFY_BUILD_HOOK_URL || '';
-const serializedConfig = JSON.stringify({
-  supabaseUrl: publicSupabaseUrl,
-  supabaseAnonKey: publicSupabaseAnonKey,
-  contentKey: publicSiteContentKey,
-  netlifyBuildHook,
-}).replace(/</g, '\\u003c');
+const SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+const CONTENT_KEY  = import.meta.env.PUBLIC_SITE_CONTENT_KEY ?? 'main';
+const BUILD_HOOK   = import.meta.env.NETLIFY_BUILD_HOOK_URL ?? '';
 ---
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin · Swea Fastighetsservice</title>
+  <meta name="robots" content="noindex,nofollow"/>
+</head>
+<body>
 
-<BaseLayout title="Adm-in-brand" description="Panel privado para editar contenido en vivo.">
-  <main class="adm-shell">
-    <section class="adm-card" id="authCard">
-      <h1>Adm-in-brand</h1>
-      <p>Acceso privado al editor visual.</p>
-      <form id="loginForm" class="adm-form">
-        <label for="adminEmail">Email</label>
-        <input id="adminEmail" type="email" placeholder="admin@tu-dominio.com" required />
+<!-- ══ LOGIN ══ -->
+<div class="adm-login-wrap" id="loginScreen">
+  <div class="adm-login-card">
+    <div class="adm-login-logo">
+      <div class="adm-logo-mark">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c8913a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+      </div>
+      <div class="adm-login-name">Swea <span>Admin</span></div>
+      <div class="adm-login-sub">Fastighetsservice · Panel de control</div>
+    </div>
+    <h1>Sign in</h1>
+    <div class="adm-form">
+      <div>
+        <label for="loginEmail">Email address</label>
+        <input class="adm-input" type="email" id="loginEmail" placeholder="admin@example.com" autocomplete="email"/>
+      </div>
+      <div>
+        <label for="loginPass">Password</label>
+        <input class="adm-input" type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <button class="btn-primary" id="loginBtn">Sign in</button>
+      <p class="adm-msg" id="loginMsg"></p>
+    </div>
+  </div>
+</div>
 
-        <label for="adminPassword">Password</label>
-        <input id="adminPassword" type="password" placeholder="Tu clave" required />
+<!-- ══ APP ══ -->
+<div class="adm-app" id="admApp" hidden>
 
-        <button type="submit">Entrar</button>
-      </form>
-      <p id="authMessage" class="adm-message" aria-live="polite"></p>
-    </section>
+  <!-- TOPBAR -->
+  <header class="adm-topbar">
+    <div class="adm-topbar-left">
+      <button class="adm-toggle-btn" id="sidebarToggle" title="Collapse/expand menu">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+      <div class="adm-brand-label">
+        <div class="adm-brand-name">Swea <span>Admin</span></div>
+        <div class="adm-brand-sub">FASTIGHETSSERVICE</div>
+      </div>
+    </div>
+    <div class="adm-topbar-right">
+      <span class="adm-status-badge" id="statusBadge">Connected</span>
+      <button class="btn-topbar pub" id="publishBtn">↑ Publicar sitio</button>
+      <button class="btn-topbar" id="logoutBtn">Sign out</button>
+    </div>
+  </header>
 
-    <section class="adm-workspace" id="workspace" hidden>
-      <aside class="adm-sidebar">
-        <div class="adm-sidebar-head">
-          <h2>Editor visual</h2>
-          <button id="logoutBtn" type="button" class="ghost">Salir</button>
+  <!-- SIDEBAR -->
+  <nav class="adm-sidebar">
+
+    <div class="adm-nav-group">
+      <div class="adm-nav-item active" data-panel="dashboard">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span class="adm-nav-text">Dashboard</span>
+      </div>
+    </div>
+
+    <div class="adm-nav-group">
+      <span class="adm-nav-section-label">Pages</span>
+      <div class="adm-nav-item" data-panel="pages">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        <span class="adm-nav-text">All pages</span>
+      </div>
+      <div class="adm-sb-pages" id="sbPages">
+        <div class="adm-sb-page" data-url="/" data-label="Home">
+          <span class="adm-sb-page-dot"></span>Home
         </div>
-
-        <p class="helper">Pasa el mouse o haz click en un texto/imagen del preview para editarlo.</p>
-
-        <div class="field-meta">
-          <p><strong>Ruta:</strong> <span id="fieldPath">-</span></p>
-          <p><strong>Tipo:</strong> <span id="fieldType">-</span></p>
+        <div class="adm-sb-page" data-url="/style-guide" data-label="Style Guide">
+          <span class="adm-sb-page-dot"></span>Style Guide
         </div>
+      </div>
+    </div>
 
-        <label for="fieldValue">Nuevo valor</label>
-        <textarea id="fieldValue" rows="8" placeholder="Selecciona un elemento para editar"></textarea>
+    <div class="adm-nav-group">
+      <span class="adm-nav-section-label">Content</span>
+      <div class="adm-nav-item" data-panel="sections">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+        <span class="adm-nav-text">Sections</span>
+      </div>
+      <div class="adm-nav-item" data-panel="seo">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span class="adm-nav-text">SEO</span>
+      </div>
+    </div>
 
-        <div class="actions">
-          <button id="saveBtn" type="button">Guardar online</button>
-          <div class="history-actions">
-            <button id="undoBtn" type="button" class="ghost" disabled>Deshacer</button>
-            <button id="redoBtn" type="button" class="ghost" disabled>Rehacer</button>
+    <div class="adm-nav-group">
+      <span class="adm-nav-section-label">System</span>
+      <div class="adm-nav-item" data-panel="settings">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span class="adm-nav-text">Settings</span>
+      </div>
+      <div class="adm-nav-item" data-panel="users">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="adm-nav-text">Users</span>
+      </div>
+    </div>
+
+  </nav>
+
+  <!-- ══ CONTENT AREA ══ -->
+  <div class="adm-content" id="admContent">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="adm-panel panel-active" id="dashboardPanel">
+      <div class="dash-wrap">
+
+        <div class="dash-header">
+          <div class="dash-logo">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c8913a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          </div>
+          <div>
+            <div class="dash-site-name">Swea <span>Fastighetsservice</span></div>
+            <div class="dash-site-meta">
+              <span>sweafs.se</span>
+              <span>·</span>
+              <span id="dashLastUpdate">Loading...</span>
+            </div>
           </div>
         </div>
 
-        <div class="history-panel">
-          <p class="history-title">Historial reciente</p>
-          <ul id="historyList"></ul>
+        <div class="dash-stats">
+          <div class="dash-stat c-accent">
+            <div class="dash-stat-label">Site type</div>
+            <div class="dash-stat-val" style="font-size:.95rem;margin-top:.15rem">Static</div>
+            <div class="dash-stat-sub">One Page / SSG</div>
+          </div>
+          <div class="dash-stat c-blue">
+            <div class="dash-stat-label">Framework</div>
+            <div class="dash-stat-val" style="font-size:.95rem;margin-top:.15rem">Astro 5</div>
+            <div class="dash-stat-sub">Build time rendering</div>
+          </div>
+          <div class="dash-stat c-green">
+            <div class="dash-stat-label">Database</div>
+            <div class="dash-stat-val" style="font-size:.95rem;margin-top:.15rem">Supabase</div>
+            <div class="dash-stat-sub">PostgreSQL + Auth</div>
+          </div>
+          <div class="dash-stat c-muted">
+            <div class="dash-stat-label">Hosting</div>
+            <div class="dash-stat-val" style="font-size:.95rem;margin-top:.15rem">Netlify</div>
+            <div class="dash-stat-sub">Global CDN + CI/CD</div>
+          </div>
         </div>
 
-        <p id="saveMessage" class="adm-message" aria-live="polite"></p>
-      </aside>
+        <div class="dash-2col">
 
-      <div class="adm-preview-wrap">
-        <iframe id="previewFrame" src="/?adm-preview=1" title="Vista previa del sitio"></iframe>
+          <div class="dash-card">
+            <div class="dash-card-head">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              <h3>Tech stack</h3>
+            </div>
+            <div class="dash-card-body">
+              <div class="tech-pills">
+                <span class="tech-pill astro">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M16.074 16.86C15.354 17.476 13.91 17.9 12.24 17.9c-2.07 0-3.788-.681-4.249-1.604-.163.496-.2 1.005-.2 1.37 0 0-.107 1.756 1.12 2.983.64.64 1.486.976 2.374.967a3.68 3.68 0 0 0 3.026-1.569c.574-.832.763-1.895.763-3.187Z"/><path d="M16.074 16.86c.355-.299.745-.67.802-1.04.077-.497-.2-1.008-.62-1.278-.383-.248-.877-.24-1.25-.029-.454.258-.618.76-.69 1.234-.07.47-.046.938.058 1.4.18-.145.433-.168.7-.288Z"/><path d="M7.775 9.568 10.9 1.128a.315.315 0 0 1 .595 0l3.124 8.44a.315.315 0 0 0 .293.205h3.417c.244 0 .371.29.209.474l-5.773 6.557a.315.315 0 0 1-.533-.12l-1.6-5.043a.315.315 0 0 0-.3-.22H7.874a.315.315 0 0 1-.236-.528l.137-.325Z"/></svg>
+                  Astro 5
+                </span>
+                <span class="tech-pill vue">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M2 3h3.5L12 15l6.5-12H22L12 21 2 3zm4.5 0h3L12 9.5 14.5 3h3L12 15 6.5 3z"/></svg>
+                  Vue 3
+                </span>
+                <span class="tech-pill supabase">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M11.9 1.036c-.015-.986-1.26-1.41-1.874-.637L.764 13.017c-.542.696-.042 1.716.825 1.716h7.861l.34 8.237c.015.986 1.26 1.41 1.874.637l9.262-12.618c.542-.696.042-1.716-.825-1.716h-7.861L11.9 1.036z"/></svg>
+                  Supabase
+                </span>
+                <span class="tech-pill netlify">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M16.934 8.519a1.044 1.044 0 0 1 .303.23l2.349-1.045-2.192-2.171-.491 2.954zM12.06 6.546a1.305 1.305 0 0 1 .209.574l3.497 1.258 .488-2.926-2.953-.938-1.24 2.032zm-2.1 3.sofá-.586 1.05 1.75-1.32-.35-1.86-1.15 1.186zm4.44-1.657l-3.522-1.265-.386.692 2.8 3.337 1.108-2.764zm-3.4 3.76l-1.76 1.327 1.74 2.063.9.093.584-1.037L10.46 12zm-3.32.556-.93.7.25 1.52 1.35-1.344-.67-.876zm-3.1 2.338l.61.37 1.13-1.126-.94-1.22-.8.6v1.376zm-.5-2.78l-.616-.37-.456 2.738.617.373.455-2.74zm12.04 2.27l.79-1.403-2.81-3.345-1.1 2.747 3.12 2zm-8.7 4.55l.73.445 4.32-5.128-.9-.093-4.15 4.776zm-2.1-1.283L4.76 19l.16.097 2.91-2.9-.68-.884zm-.5-.3l-.61-.37-.17 1.026.1.06.68-.716zm11.44-2.36l1.9 1.154.13-.204-1.66-1.64-.37.69zm.87 2.02l-1.9-1.155-.19.34 1.57 1.554.52-.739zm2.27 1.378l.08-.12-1.76-1.74-.52.74 2.2 1.12zm1.02-1.6L19.1 19.8l.44-.655-1.35-1.337-.35.654z"/></svg>
+                  Netlify
+                </span>
+                <span class="tech-pill ts">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M1.125 0C.502 0 0 .502 0 1.125v21.75C0 23.498.502 24 1.125 24h21.75c.623 0 1.125-.502 1.125-1.125V1.125C24 .502 23.498 0 22.875 0zm17.363 9.75c.612 0 1.154.037 1.627.111a6.38 6.38 0 0 1 1.306.34v2.458a3.95 3.95 0 0 0-.643-.361 5.093 5.093 0 0 0-.717-.26 5.453 5.453 0 0 0-1.426-.2c-.3 0-.573.028-.819.086a2.1 2.1 0 0 0-.623.242c-.17.104-.3.229-.393.374a.888.888 0 0 0-.14.49c0 .196.053.373.156.529.104.156.252.304.443.444s.423.276.696.41c.273.135.582.274.926.416.47.197.892.407 1.266.628.374.222.695.473.963.753.268.279.472.598.614.957.142.359.214.776.214 1.253 0 .657-.125 1.21-.373 1.656a3.033 3.033 0 0 1-1.012 1.085 4.38 4.38 0 0 1-1.487.596c-.566.12-1.163.18-1.79.18a9.916 9.916 0 0 1-1.84-.164 5.544 5.544 0 0 1-1.512-.493v-2.63a5.033 5.033 0 0 0 3.237 1.2c.333 0 .624-.03.872-.09.249-.06.456-.144.623-.25.166-.108.29-.234.373-.38a1.023 1.023 0 0 0-.074-1.089 2.12 2.12 0 0 0-.537-.5 5.597 5.597 0 0 0-.807-.444 27.72 27.72 0 0 0-1.007-.436c-.918-.383-1.602-.852-2.053-1.405-.45-.553-.676-1.222-.676-2.005 0-.614.123-1.141.369-1.582.246-.441.58-.804 1.004-1.089a4.494 4.494 0 0 1 1.47-.629 7.536 7.536 0 0 1 1.77-.201zm-15.113.188h9.563v2.166H9.506v9.646H6.789v-9.646H3.375z"/></svg>
+                  TypeScript
+                </span>
+                <span class="tech-pill tailwind">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12.001 4.8c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8.913.228 1.565.89 2.288 1.624C13.666 10.618 15.027 12 18.001 12c3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-.913-.228-1.565-.89-2.288-1.624C16.337 6.182 14.976 4.8 12.001 4.8zm-6 7.2c-3.2 0-5.2 1.6-6 4.8 1.2-1.6 2.6-2.2 4.2-1.8.913.228 1.565.89 2.288 1.624 1.177 1.194 2.538 2.576 5.512 2.576 3.2 0 5.2-1.6 6-4.8-1.2 1.6-2.6 2.2-4.2 1.8-.913-.228-1.565-.89-2.288-1.624C10.337 13.382 8.976 12 6.001 12z"/></svg>
+                  Tailwind
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="dash-card">
+            <div class="dash-card-head">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              <h3>Performance &amp; optimization</h3>
+            </div>
+            <div class="dash-card-body">
+              <div class="perf-row"><span class="perf-label">Lighthouse Performance</span><span class="perf-badge g">~98</span></div>
+              <div class="perf-row"><span class="perf-label">SEO Score</span><span class="perf-badge g">~100</span></div>
+              <div class="perf-row"><span class="perf-label">Accessibility</span><span class="perf-badge g">~95</span></div>
+              <div class="perf-row"><span class="perf-label">Best Practices</span><span class="perf-badge g">~100</span></div>
+              <div class="perf-row"><span class="perf-label">Generation</span><span class="perf-badge b">Static (SSG)</span></div>
+              <div class="perf-row"><span class="perf-label">Deploy</span><span class="perf-badge b">Netlify CDN</span></div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="dash-card" style="margin-bottom:1.2rem">
+          <div class="dash-card-head">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <h3>Quick actions</h3>
+          </div>
+          <div class="dash-card-body">
+            <div class="qa-grid">
+              <button class="qa-btn" onclick="switchPanel('pages')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                <span>Edit page</span>
+              </button>
+              <button class="qa-btn" onclick="switchPanel('seo')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <span>Configure SEO</span>
+              </button>
+              <button class="qa-btn" onclick="switchPanel('sections')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                <span>Sort sections</span>
+              </button>
+              <button class="qa-btn" onclick="switchPanel('settings')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                <span>Settings</span>
+              </button>
+              <button class="qa-btn" id="qaPublish">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+                <span>Publish site</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
       </div>
-    </section>
-  </main>
+    </div><!-- /dashboardPanel -->
 
-  <script id="adm-fallback" type="application/json" set:html={serializedSite}></script>
-  <script id="adm-config" type="application/json" set:html={serializedConfig}></script>
+    <!-- ── PAGES LIST ── -->
+    <div class="adm-panel" id="pagesPanel">
+      <div class="adm-panel-wrap">
+        <div class="adm-panel-inner">
+          <div class="adm-panel-title">Pages</div>
+          <div class="adm-panel-sub">Select a page to edit it in the preview.</div>
+          <div class="adm-section-card">
+            <div class="adm-section-card-body" style="padding:.6rem">
+              <div style="display:grid;gap:.3rem">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem .75rem;background:#f6f7f7;border:1px solid var(--border);border-radius:4px;cursor:pointer" onclick="openPreview('/', 'Inicio')">
+                  <div style="display:flex;align-items:center;gap:.6rem">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                    <span style="font-size:.82rem;font-weight:600">Home</span>
+                    <span style="font-size:.72rem;color:var(--muted)">/</span>
+                  </div>
+                  <span style="font-size:.72rem;color:var(--blue)">Edit →</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:.6rem .75rem;background:#f6f7f7;border:1px solid var(--border);border-radius:4px;cursor:pointer" onclick="openPreview('/style-guide', 'Style Guide')">
+                  <div style="display:flex;align-items:center;gap:.6rem">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    <span style="font-size:.82rem;font-weight:600">Style Guide</span>
+                    <span style="font-size:.72rem;color:var(--muted)">/style-guide</span>
+                  </div>
+                  <span style="font-size:.72rem;color:var(--blue)">Edit →</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  <script>
-    const fallbackEl = document.getElementById('adm-fallback');
-    const configEl = document.getElementById('adm-config');
-    const fallbackContent = fallbackEl ? JSON.parse(fallbackEl.textContent || '{}') : {};
-    const config = configEl ? JSON.parse(configEl.textContent || '{}') : {};
+    <!-- ── PREVIEW ── -->
+    <div class="adm-preview-panel" id="previewPanel">
+      <div class="adm-preview-bar">
+        <div class="adm-preview-dots"><span></span><span></span><span></span></div>
+        <div class="adm-preview-url" id="previewUrl">–</div>
+        <span class="adm-preview-hint">Click an element to edit it</span>
+      </div>
+      <div class="adm-preview-body">
+        <iframe id="previewFrame" title="Vista previa"></iframe>
+        <!-- Floating props panel -->
+        <div class="adm-float-props" id="floatProps">
+          <div class="adm-fp-head">
+            <h3 id="fpTitle">Properties</h3>
+            <button class="adm-fp-close" id="fpClose" title="Cerrar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="adm-fp-body">
+            <div class="adm-fp-info">
+              <strong>Field: </strong><span id="fieldPath">—</span><br/>
+              <strong>Type: </strong><span id="fieldType">—</span>
+            </div>
 
-    const loginForm = document.getElementById('loginForm');
-    const authMessage = document.getElementById('authMessage');
-    const authCard = document.getElementById('authCard');
-    const workspace = document.getElementById('workspace');
-    const fieldPathEl = document.getElementById('fieldPath');
-    const fieldTypeEl = document.getElementById('fieldType');
-    const fieldValueEl = document.getElementById('fieldValue');
-    const saveMessage = document.getElementById('saveMessage');
-    const saveBtn = document.getElementById('saveBtn');
-    const undoBtn = document.getElementById('undoBtn');
-    const redoBtn = document.getElementById('redoBtn');
-    const historyList = document.getElementById('historyList');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const previewFrame = document.getElementById('previewFrame');
-    const loginBtn = loginForm?.querySelector('button[type="submit"]');
+            <div class="adm-ctrl" id="ctrlText">
+              <span class="adm-ctrl-label">Texto / Contenido</span>
+              <textarea id="propText" rows="4"></textarea>
+            </div>
 
-    const supabaseUrl = (config.supabaseUrl || '').trim();
-    const supabaseAnonKey = (config.supabaseAnonKey || '').trim().replace(/[^\x20-\x7E]/g, '');
-    const contentKey = (config.contentKey || 'main').trim();
-    const netlifyBuildHook = (config.netlifyBuildHook || '').trim();
+            <div class="adm-ctrl" id="ctrlImg" hidden>
+              <span class="adm-ctrl-label">URL de imagen</span>
+              <input type="url" id="propImgUrl" placeholder="https://..."/>
+            </div>
 
-    const apiBase = `${supabaseUrl}/rest/v1`;
-    const authBase = `${supabaseUrl}/auth/v1`;
-    let accessToken = '';
+            <hr class="adm-divider"/>
 
-    if (!supabaseUrl || !supabaseAnonKey) {
-      authMessage.textContent = 'Faltan PUBLIC_SUPABASE_URL y PUBLIC_SUPABASE_ANON_KEY en variables de entorno.';
-      loginForm?.setAttribute('hidden', 'hidden');
-      throw new Error('Missing Supabase env vars');
+            <div class="adm-style-grid">
+              <div class="adm-ctrl">
+                <span class="adm-ctrl-label">Color texto</span>
+                <div class="adm-color-row">
+                  <div class="adm-swatch"><input type="color" id="propTextColor"/></div>
+                  <input class="adm-hex" type="text" id="propTextColorHex" maxlength="7"/>
+                </div>
+              </div>
+              <div class="adm-ctrl">
+                <span class="adm-ctrl-label">Color fondo</span>
+                <div class="adm-color-row">
+                  <div class="adm-swatch"><input type="color" id="propBgColor"/></div>
+                  <input class="adm-hex" type="text" id="propBgColorHex" maxlength="7"/>
+                </div>
+              </div>
+            </div>
+
+            <div class="adm-ctrl">
+              <span class="adm-ctrl-label">Text size</span>
+              <select class="adm-size-sel" id="propFontSize">
+                <option value="">— sin cambio —</option>
+                <option value="12px">12px</option><option value="14px">14px</option>
+                <option value="16px">16px</option><option value="18px">18px</option>
+                <option value="20px">20px</option><option value="24px">24px</option>
+                <option value="28px">28px</option><option value="32px">32px</option>
+                <option value="40px">40px</option><option value="48px">48px</option>
+                <option value="56px">56px</option><option value="64px">64px</option>
+              </select>
+            </div>
+
+            <hr class="adm-divider"/>
+
+            <button class="btn-save" id="saveBtn">Save changes</button>
+            <div class="adm-undo-row">
+              <button class="btn-sec" id="undoBtn" disabled>↩ Undo</button>
+              <button class="btn-sec" id="redoBtn" disabled>Redo ↪</button>
+            </div>
+            <p id="saveMessage"></p>
+            <div class="adm-history-box">
+              <div class="adm-history-title">History</div>
+              <ul id="historyList"></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SECTIONS ── -->
+    <div class="adm-panel" id="sectionsPanel">
+      <div class="adm-panel-wrap">
+        <div class="adm-panel-inner">
+          <div class="adm-panel-title">Section order</div>
+          <div class="adm-panel-sub">Drag to change the order in which sections appear on the Home page.</div>
+          <div class="adm-section-card">
+            <div class="adm-section-card-body" style="padding:.5rem">
+              <div class="adm-sb-sections" id="sectionsList"></div>
+            </div>
+          </div>
+          <div class="adm-save-row">
+            <button class="btn-save-panel" id="saveSectionsBtn">Save order</button>
+            <span class="adm-panel-msg" id="sectionsMsg"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SEO ── -->
+    <div class="adm-panel" id="seoPanel">
+      <div class="adm-panel-wrap">
+        <div class="adm-panel-inner">
+          <div class="adm-panel-title">SEO</div>
+          <div class="adm-panel-sub">Metadata for search engines and social networks.</div>
+          <div class="adm-section-card">
+            <div class="adm-section-card-head">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <h3>Basic metadata</h3>
+            </div>
+            <div class="adm-section-card-body">
+              <div class="adm-form-row"><label>Meta title</label><input type="text" id="seoTitle" placeholder="Swea Fastighetsservice – ..."/><span class="adm-form-hint">50–60 characters recommended</span></div>
+              <div class="adm-form-row"><label>Meta description</label><textarea id="seoDesc" rows="3"></textarea><span class="adm-form-hint">120–160 characters recommended</span></div>
+              <div class="adm-form-row"><label>Keywords</label><input type="text" id="seoKeywords" placeholder="fastighetsservice, städning, ..."/></div>
+            </div>
+          </div>
+          <div class="adm-section-card">
+            <div class="adm-section-card-head">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+              <h3>Open Graph (social media)</h3>
+            </div>
+            <div class="adm-section-card-body">
+              <div class="adm-form-row"><label>OG Title</label><input type="text" id="seoOgTitle"/></div>
+              <div class="adm-form-row"><label>OG Description</label><textarea id="seoOgDesc" rows="2"></textarea></div>
+              <div class="adm-form-row"><label>OG Image (URL)</label><input type="url" id="seoOgImage" placeholder="https://..."/><span class="adm-form-hint">Recommended: 1200×630px</span></div>
+            </div>
+          </div>
+          <div class="adm-save-row">
+            <button class="btn-save-panel" id="saveSeoBtn">Save SEO</button>
+            <span class="adm-panel-msg" id="seoMsg"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SETTINGS ── -->
+    <div class="adm-panel" id="settingsPanel">
+      <div class="adm-panel-wrap">
+        <div class="adm-panel-inner">
+          <div class="adm-panel-title">Settings</div>
+          <div class="adm-panel-sub">Contact details and general site configuration.</div>
+          <div class="adm-section-card">
+            <div class="adm-section-card-head"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg><h3>Contact form</h3></div>
+            <div class="adm-section-card-body">
+              <div class="adm-form-row"><label>Form recipient email</label><input type="email" id="cfgFormEmail" placeholder="info@sweafs.se"/><span class="adm-form-hint">Messages from the contact form will be sent to this address.</span></div>
+              <div class="adm-form-row"><label>Web3Forms Access Key</label><input type="text" id="cfgWeb3Key" placeholder="xxxxxxxx-xxxx-..."/></div>
+            </div>
+          </div>
+          <div class="adm-section-card">
+            <div class="adm-section-card-head"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 5.55 5.55l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16.92z"/></svg><h3>Phone &amp; WhatsApp</h3></div>
+            <div class="adm-section-card-body">
+              <div class="adm-grid-2">
+                <div class="adm-form-row"><label>Phone number</label><input type="tel" id="cfgPhone" placeholder="+46 70 000 00 00"/></div>
+                <div class="adm-form-row"><label>WhatsApp (link)</label><input type="text" id="cfgWhatsapp" placeholder="https://wa.me/46..."/></div>
+              </div>
+              <div class="adm-form-row"><label>Email shown on the site</label><input type="email" id="cfgEmail" placeholder="info@sweafs.se"/></div>
+            </div>
+          </div>
+          <div class="adm-save-row">
+            <button class="btn-save-panel" id="saveSettingsBtn">Save settings</button>
+            <span class="adm-panel-msg" id="settingsMsg"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── USERS ── -->
+    <div class="adm-panel" id="usersPanel">
+      <div class="adm-panel-wrap">
+        <div class="adm-panel-inner">
+          <div class="adm-panel-title">Users</div>
+          <div class="adm-panel-sub">Users with access to the admin panel.</div>
+          <div class="adm-section-card">
+            <div class="adm-section-card-head"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><h3>Active session</h3></div>
+            <div class="adm-section-card-body">
+              <div id="currentUserInfo" style="font-size:.82rem">Loading...</div>
+            </div>
+          </div>
+          <div class="adm-section-card">
+            <div class="adm-section-card-head"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><h3>Manage users</h3></div>
+            <div class="adm-section-card-body">
+              <p style="font-size:.82rem;color:var(--muted);line-height:1.6">To add or remove users, use the Supabase dashboard → Authentication → Users.</p>
+              <a id="supabaseAuthLink" href="#" target="_blank" rel="noopener" style="display:inline-block;margin-top:.6rem;font-size:.8rem;color:var(--blue);text-decoration:none;border:1px solid var(--border);border-radius:3px;padding:.35rem .75rem;">Open Supabase Auth →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /admContent -->
+</div><!-- /admApp -->
+
+<script define:vars={{ SUPABASE_URL, SUPABASE_KEY, CONTENT_KEY, BUILD_HOOK }}>
+const SB_URL = (SUPABASE_URL ?? '').trim().replace(/[^\x20-\x7E]/g, '');
+const SB_KEY = (SUPABASE_KEY ?? '').trim().replace(/[^\x20-\x7E]/g, '');
+const CKEY   = CONTENT_KEY ?? 'main';
+const HOOK   = BUILD_HOOK ?? '';
+
+let accessToken = null;
+let site = {};
+let hist = [], histIdx = -1;
+
+const sbH = () => ({
+  apikey: SB_KEY,
+  Authorization: `Bearer ${accessToken || SB_KEY}`,
+  'Content-Type': 'application/json',
+});
+
+async function sbLogin(email, pw) {
+  const r = await fetch(`${SB_URL}/auth/v1/token?grant_type=password`, {
+    method: 'POST',
+    headers: { apikey: SB_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password: pw }),
+  });
+  return r.json();
+}
+
+async function loadContent() {
+  const r = await fetch(`${SB_URL}/rest/v1/site_content?key=eq.${encodeURIComponent(CKEY)}&select=content,updated_at&limit=1`, { headers: sbH() });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  const rows = await r.json();
+  if (rows.length) {
+    const d = new Date(rows[0].updated_at);
+    document.getElementById('dashLastUpdate').textContent = `Last edited: ${d.toLocaleDateString('en', { day:'2-digit', month:'short', year:'numeric' })}`;
+    return rows[0].content ?? {};
+  }
+  document.getElementById('dashLastUpdate').textContent = 'Sin contenido guardado';
+  return {};
+}
+
+async function saveContent(data) {
+  const r = await fetch(`${SB_URL}/rest/v1/site_content?key=eq.${encodeURIComponent(CKEY)}`, {
+    method: 'PATCH',
+    headers: { ...sbH(), Prefer: 'return=minimal' },
+    body: JSON.stringify({ content: data, updated_at: new Date().toISOString() }),
+  });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+}
+
+/* ── LOGIN ── */
+const loginScreen = document.getElementById('loginScreen');
+const admApp = document.getElementById('admApp');
+const loginBtn = document.getElementById('loginBtn');
+const loginMsg = document.getElementById('loginMsg');
+
+loginBtn.addEventListener('click', async () => {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pw    = document.getElementById('loginPass').value;
+  if (!email || !pw) { loginMsg.textContent = 'Completa todos los campos'; loginMsg.className = 'adm-msg error'; return; }
+  loginBtn.disabled = true; loginBtn.textContent = 'Entrando...';
+  loginMsg.textContent = ''; loginMsg.className = 'adm-msg';
+  try {
+    const d = await sbLogin(email, pw);
+    if (d.error || !d.access_token) {
+      loginMsg.textContent = `Access denied: ${d.error_description || d.error || 'Invalid credentials'}`;
+      loginMsg.className = 'adm-msg error';
+    } else {
+      accessToken = d.access_token;
+      loginScreen.hidden = true; admApp.hidden = false;
+      await initApp();
     }
+  } catch(e) { loginMsg.textContent = `Error: ${e.message}`; loginMsg.className = 'adm-msg error'; }
+  finally { loginBtn.disabled = false; loginBtn.textContent = 'Sign in'; }
+});
+document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') loginBtn.click(); });
+document.getElementById('logoutBtn').addEventListener('click', () => { accessToken = null; admApp.hidden = true; loginScreen.hidden = false; });
 
-    let currentContent = structuredClone(fallbackContent);
-    let currentTarget = null;
-    let currentBinding = null;
-    let previewBridgeReady = false;
-    const undoStack = [];
-    const redoStack = [];
-    const maxHistoryEntries = 20;
+/* ── SIDEBAR TOGGLE ── */
+document.getElementById('sidebarToggle').addEventListener('click', () => admApp.classList.toggle('sidebar-collapsed'));
 
-    const isElementNode = (node) => Boolean(node && node.nodeType === 1);
-    const nodeTag = (node) => (isElementNode(node) ? String(node.tagName || '').toUpperCase() : '');
+/* ── PANEL SWITCHING ── */
+const navItems = document.querySelectorAll('.adm-nav-item');
+const PANELS = ['dashboard','pages','preview','sections','seo','media','settings','users'];
 
-    const setActiveElement = (element) => {
-      const mappings = getMappings(element);
-      if (!mappings.length) return;
+window.switchPanel = function(name) {
+  navItems.forEach(n => n.classList.toggle('active', n.dataset.panel === name));
+  document.querySelectorAll('.adm-sb-page').forEach(p => p.classList.remove('active'));
 
-      if (currentTarget && currentTarget !== element) {
-        currentTarget.removeAttribute('data-adm-selected');
-      }
+  PANELS.forEach(k => {
+    const el = document.getElementById(k + 'Panel');
+    if (!el) return;
+    const isPreview = k === 'preview';
+    const cls = isPreview ? 'panel-active' : 'panel-active';
+    el.classList.toggle(cls, k === name);
+    // preview panel uses flex, others block — handled via CSS classes already
+    if (isPreview) {
+      el.style.display = k === name ? 'flex' : 'none';
+      el.classList.toggle('panel-active', k === name);
+    }
+  });
 
-      currentTarget = element;
-      currentTarget.setAttribute('data-adm-selected', 'true');
-      currentBinding = mappings[0];
-      renderSelection();
+  if (name === 'seo')      fillSeo();
+  if (name === 'settings') fillSettings();
+  if (name === 'media')    loadMedia();
+  if (name === 'users')    loadUsers();
+  if (name === 'sections') loadSections();
+};
 
-      if (fieldValueEl instanceof HTMLTextAreaElement) {
-        fieldValueEl.focus();
-        fieldValueEl.setSelectionRange(0, fieldValueEl.value.length);
-      }
-    };
+navItems.forEach(item => item.addEventListener('click', () => switchPanel(item.dataset.panel)));
 
-    const getByPath = (source, path) => path.split('.').reduce((acc, segment) => {
-      if (acc == null) return undefined;
-      return acc[segment];
-    }, source);
+/* ── PAGE SELECTION (sidebar sub-items) ── */
+document.querySelectorAll('.adm-sb-page').forEach(p => {
+  p.addEventListener('click', () => openPreview(p.dataset.url, p.dataset.label));
+});
 
-    const setByPath = (source, path, value) => {
-      const segments = path.split('.');
-      let cursor = source;
+window.openPreview = function(url, label) {
+  document.querySelectorAll('.adm-sb-page').forEach(p => p.classList.toggle('active', p.dataset.url === url));
+  navItems.forEach(n => n.classList.toggle('active', n.dataset.panel === 'pages'));
+  // activate preview panel
+  PANELS.forEach(k => {
+    const el = document.getElementById(k + 'Panel');
+    if (!el) return;
+    if (k === 'preview') { el.style.display = 'flex'; el.classList.add('panel-active'); }
+    else { el.style.display = ''; el.classList.remove('panel-active'); }
+  });
+  document.getElementById('previewUrl').textContent = url;
+  const frame = document.getElementById('previewFrame');
+  frame.src = url;
+  // close float props
+  document.getElementById('floatProps').classList.remove('open');
+};
 
-      for (let i = 0; i < segments.length - 1; i += 1) {
-        const key = segments[i];
-        const next = segments[i + 1];
-        if (cursor[key] == null) {
-          cursor[key] = /^\d+$/.test(next) ? [] : {};
-        }
-        cursor = cursor[key];
-      }
+/* ── FLOAT PROPS ── */
+document.getElementById('fpClose').addEventListener('click', () => {
+  document.getElementById('floatProps').classList.remove('open');
+});
 
-      cursor[segments[segments.length - 1]] = value;
-    };
+let selectedPath = null, selectedType = null;
 
-    const getMappings = (element) => {
-      const raw = [
-        { attr: 'data-content-path', type: 'text' },
-        { attr: 'data-content-src-path', type: 'image-src' },
-        { attr: 'data-content-href-path', type: 'link-href' },
-        { attr: 'data-content-placeholder-path', type: 'placeholder' },
-        { attr: 'data-content-alt-path', type: 'image-alt' },
-      ];
+window.addEventListener('message', e => {
+  if (e.data?.type !== 'adm-select') return;
+  const { path, value, computedColor, computedBg, computedFontSize, isImg } = e.data;
+  selectedPath = path; selectedType = isImg ? 'imagen' : 'texto';
 
-      return raw
-        .map((item) => {
-          const path = element.getAttribute(item.attr);
-          if (!path) return null;
-          return { ...item, path };
-        })
-        .filter(Boolean);
-    };
+  document.getElementById('fpTitle').textContent = isImg ? 'Imagen' : 'Texto';
+  document.getElementById('fieldPath').textContent = path || '—';
+  document.getElementById('fieldType').textContent = selectedType;
+  document.getElementById('ctrlText').hidden = !!isImg;
+  document.getElementById('ctrlImg').hidden  = !isImg;
+  if (isImg) document.getElementById('propImgUrl').value = value || '';
+  else       document.getElementById('propText').value   = value || '';
 
-    const renderSelection = () => {
-      if (!currentBinding) {
-        fieldPathEl.textContent = '-';
-        fieldTypeEl.textContent = '-';
-        fieldValueEl.value = '';
-        fieldValueEl.placeholder = 'Selecciona un elemento para editar';
-        return;
-      }
+  const tc = normColor(computedColor || '');
+  const bc = normColor(computedBg || '');
+  document.getElementById('propTextColor').value    = tc;
+  document.getElementById('propTextColorHex').value = tc;
+  document.getElementById('propBgColor').value      = bc;
+  document.getElementById('propBgColorHex').value   = bc;
+  document.getElementById('propFontSize').value     = computedFontSize || '';
+  document.getElementById('floatProps').classList.add('open');
+  document.getElementById('saveMessage').textContent = '';
+});
 
-      fieldPathEl.textContent = currentBinding.path;
-      fieldTypeEl.textContent = currentBinding.type;
-      const value = getByPath(currentContent, currentBinding.path);
-      fieldValueEl.value = value == null ? '' : String(value);
-      fieldValueEl.placeholder = 'Escribe el nuevo valor y presiona Guardar online';
-    };
+function normColor(c) {
+  if (!c || c === 'rgba(0, 0, 0, 0)' || c === 'transparent') return '#ffffff';
+  const m = c.match(/\d+/g);
+  if (!m) return '#000000';
+  return '#' + [m[0],m[1],m[2]].map(n => parseInt(n).toString(16).padStart(2,'0')).join('');
+}
 
-    const updatePreviewValue = (element, binding, value) => {
-      if (!element || !binding) return;
+['TextColor','BgColor'].forEach(k => {
+  const p = document.getElementById(`prop${k}`);
+  const h = document.getElementById(`prop${k}Hex`);
+  p.addEventListener('input', () => h.value = p.value);
+  h.addEventListener('change', () => { if (/^#[0-9a-fA-F]{6}$/.test(h.value)) p.value = h.value; });
+});
 
-      const tag = nodeTag(element);
+/* ── HISTORY / SAVE ── */
+function applyToSite(path, val) {
+  const parts = path.split('.');
+  let o = site;
+  for (let i = 0; i < parts.length - 1; i++) { if (!o[parts[i]]) o[parts[i]] = {}; o = o[parts[i]]; }
+  o[parts[parts.length-1]] = val;
+}
+function getFromSite(path) { return path.split('.').reduce((o,k) => o?.[k], site); }
 
-      if (binding.type === 'text') {
-        element.textContent = value;
-      }
+function pushHist(path, oldV, newV) {
+  hist = hist.slice(0, histIdx + 1);
+  hist.push({ path, oldV, newV, ts: new Date().toLocaleTimeString() });
+  histIdx = hist.length - 1;
+  renderHist();
+  document.getElementById('undoBtn').disabled = false;
+  document.getElementById('redoBtn').disabled = true;
+}
+function renderHist() {
+  const ul = document.getElementById('historyList');
+  ul.innerHTML = '';
+  hist.slice().reverse().slice(0,8).forEach(h => {
+    const li = document.createElement('li'); li.textContent = `${h.ts} · ${h.path}`; ul.appendChild(li);
+  });
+}
 
-      if (binding.type === 'image-src' && tag === 'IMG') {
-        element.src = value;
-      }
+document.getElementById('undoBtn').addEventListener('click', () => {
+  if (histIdx < 0) return;
+  const h = hist[histIdx--];
+  applyToSite(h.path, h.oldV);
+  document.getElementById('undoBtn').disabled = histIdx < 0;
+  document.getElementById('redoBtn').disabled = false;
+  postUpdate(h.path, h.oldV);
+});
+document.getElementById('redoBtn').addEventListener('click', () => {
+  if (histIdx >= hist.length - 1) return;
+  const h = hist[++histIdx];
+  applyToSite(h.path, h.newV);
+  document.getElementById('undoBtn').disabled = false;
+  document.getElementById('redoBtn').disabled = histIdx >= hist.length - 1;
+  postUpdate(h.path, h.newV);
+});
 
-      if (binding.type === 'image-alt' && tag === 'IMG') {
-        element.alt = value;
-      }
+function postUpdate(path, val) {
+  document.getElementById('previewFrame').contentWindow?.postMessage({ type:'adm-update', path, value:val }, '*');
+}
 
-      if (binding.type === 'link-href' && tag === 'A') {
-        element.href = value;
-      }
+document.getElementById('saveBtn').addEventListener('click', async () => {
+  if (!selectedPath) return;
+  const isImg = selectedType === 'imagen';
+  const newV  = isImg ? document.getElementById('propImgUrl').value : document.getElementById('propText').value;
+  pushHist(selectedPath, getFromSite(selectedPath), newV);
+  applyToSite(selectedPath, newV);
+  const msg = document.getElementById('saveMessage');
+  msg.textContent = 'Saving...'; msg.className = '';
+  try {
+    await saveContent(site);
+    msg.textContent = 'Guardado ✓';
+    postUpdate(selectedPath, newV);
+    const fw = document.getElementById('previewFrame').contentWindow;
+    const tc = document.getElementById('propTextColor').value;
+    const bc = document.getElementById('propBgColor').value;
+    const fs = document.getElementById('propFontSize').value;
+    if (tc) fw?.postMessage({ type:'adm-style', path:selectedPath, prop:'color', value:tc }, '*');
+    if (bc) fw?.postMessage({ type:'adm-style', path:selectedPath, prop:'backgroundColor', value:bc }, '*');
+    if (fs) fw?.postMessage({ type:'adm-style', path:selectedPath, prop:'fontSize', value:fs }, '*');
+  } catch(e) { msg.textContent = `Error: ${e.message}`; msg.className = 'error'; }
+});
 
-      if (binding.type === 'placeholder' && (tag === 'INPUT' || tag === 'TEXTAREA')) {
-        element.placeholder = value;
-      }
-    };
+/* ── PUBLISH ── */
+async function doPublish() {
+  if (!HOOK) { alert('No hay Build Hook configurado.'); return; }
+  const btn = document.getElementById('publishBtn');
+  const qa  = document.getElementById('qaPublish');
+  btn.disabled = true; btn.textContent = 'Publicando...';
+  try {
+    await fetch(HOOK, { method:'POST' });
+    btn.textContent = '✓ Publicado';
+    if (qa) { const os = qa.querySelector('span').textContent; qa.querySelector('span').textContent = '✓ Publicado!'; setTimeout(() => qa.querySelector('span').textContent = os, 3000); }
+    setTimeout(() => { btn.textContent = '↑ Publicar sitio'; btn.disabled = false; }, 3000);
+  } catch { btn.textContent = '↑ Publicar sitio'; btn.disabled = false; }
+}
+document.getElementById('publishBtn').addEventListener('click', doPublish);
+document.getElementById('qaPublish')?.addEventListener('click', doPublish);
 
-    const setSaveMessage = (message, isError = false) => {
-      saveMessage.textContent = message;
-      saveMessage.classList.toggle('error', isError);
-    };
+/* ── SEO ── */
+function fillSeo() {
+  document.getElementById('seoTitle').value    = site.meta?.title ?? '';
+  document.getElementById('seoDesc').value     = site.meta?.description ?? '';
+  document.getElementById('seoKeywords').value = site.meta?.keywords ?? '';
+  document.getElementById('seoOgTitle').value  = site.meta?.ogTitle ?? '';
+  document.getElementById('seoOgDesc').value   = site.meta?.ogDescription ?? '';
+  document.getElementById('seoOgImage').value  = site.meta?.ogImage ?? '';
+}
+document.getElementById('saveSeoBtn').addEventListener('click', async () => {
+  if (!site.meta) site.meta = {};
+  Object.assign(site.meta, { title: document.getElementById('seoTitle').value, description: document.getElementById('seoDesc').value, keywords: document.getElementById('seoKeywords').value, ogTitle: document.getElementById('seoOgTitle').value, ogDescription: document.getElementById('seoOgDesc').value, ogImage: document.getElementById('seoOgImage').value });
+  const m = document.getElementById('seoMsg'); m.textContent = 'Saving...';
+  try { await saveContent(site); m.textContent = 'SEO guardado ✓'; m.className = 'adm-panel-msg'; }
+  catch(e) { m.textContent = `Error: ${e.message}`; m.className = 'adm-panel-msg error'; }
+});
 
-    const escapeAttributeValue = (value) => String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+/* ── SETTINGS ── */
+function fillSettings() {
+  document.getElementById('cfgFormEmail').value = site.contact?.web3forms?.email ?? '';
+  document.getElementById('cfgWeb3Key').value   = site.contact?.web3forms?.key ?? '';
+  document.getElementById('cfgPhone').value     = site.topContact?.phoneDisplay ?? site.topContact?.phone ?? '';
+  document.getElementById('cfgWhatsapp').value  = site.topContact?.whatsappHref ?? '';
+  document.getElementById('cfgEmail').value     = site.topContact?.email ?? '';
+}
+document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
+  if (!site.contact) site.contact = {};
+  if (!site.contact.web3forms) site.contact.web3forms = {};
+  if (!site.topContact) site.topContact = {};
+  site.contact.web3forms.email  = document.getElementById('cfgFormEmail').value;
+  site.contact.web3forms.key    = document.getElementById('cfgWeb3Key').value;
+  site.topContact.phoneDisplay  = document.getElementById('cfgPhone').value;
+  site.topContact.phone         = document.getElementById('cfgPhone').value;
+  site.topContact.whatsappHref  = document.getElementById('cfgWhatsapp').value;
+  site.topContact.email         = document.getElementById('cfgEmail').value;
+  const m = document.getElementById('settingsMsg'); m.textContent = 'Saving...';
+  try { await saveContent(site); m.textContent = 'Settings saved ✓'; m.className = 'adm-panel-msg'; }
+  catch(e) { m.textContent = `Error: ${e.message}`; m.className = 'adm-panel-msg error'; }
+});
 
-    const updateButtonsState = () => {
-      if (undoBtn instanceof HTMLButtonElement) {
-        undoBtn.disabled = undoStack.length === 0;
-      }
-      if (redoBtn instanceof HTMLButtonElement) {
-        redoBtn.disabled = redoStack.length === 0;
-      }
-    };
+/* ── SECTIONS ── */
+const SECTION_LABELS = { hero:'Hero / Main banner', benefits:'Benefits', services:'Services', why:'Why choose us?', contact:'Contact form', footer:'Footer' };
+function loadSections() {
+  const order = site.sectionOrder ?? Object.keys(SECTION_LABELS);
+  const c = document.getElementById('sectionsList'); c.innerHTML = '';
+  order.forEach((key, i) => {
+    const row = document.createElement('div');
+    row.className = 'adm-section-row'; row.draggable = true; row.dataset.key = key;
+    row.innerHTML = `<svg class="drag-handle" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg><span>${i+1}. ${SECTION_LABELS[key]??key}</span>`;
+    c.appendChild(row);
+  });
+  initDrag(c);
+}
+function initDrag(c) {
+  let dragged = null;
+  c.querySelectorAll('.adm-section-row').forEach(row => {
+    row.addEventListener('dragstart', () => { dragged = row; setTimeout(() => row.classList.add('dragging'), 0); });
+    row.addEventListener('dragend', () => { row.classList.remove('dragging'); dragged = null; renum(c); });
+    row.addEventListener('dragover', e => { e.preventDefault(); row.classList.add('drag-over'); if (dragged && dragged !== row) c.insertBefore(dragged, row); });
+    row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+    row.addEventListener('drop', e => { e.preventDefault(); row.classList.remove('drag-over'); });
+  });
+}
+function renum(c) {
+  c.querySelectorAll('.adm-section-row').forEach((r,i) => r.querySelector('span').textContent = `${i+1}. ${SECTION_LABELS[r.dataset.key]??r.dataset.key}`);
+}
+document.getElementById('saveSectionsBtn').addEventListener('click', async () => {
+  site.sectionOrder = Array.from(document.querySelectorAll('#sectionsList .adm-section-row')).map(r => r.dataset.key);
+  const m = document.getElementById('sectionsMsg'); m.textContent = 'Saving...';
+  try { await saveContent(site); m.textContent = 'Orden guardado ✓'; m.className = 'adm-panel-msg'; }
+  catch(e) { m.textContent = `Error: ${e.message}`; m.className = 'adm-panel-msg error'; }
+});
 
-    const renderHistory = () => {
-      if (!(historyList instanceof HTMLUListElement)) return;
+/* ── MEDIA ── */
+const BUCKET = 'media';
+async function loadMedia() {
+  const g = document.getElementById('mediaGrid');
+  g.innerHTML = '<p style="color:var(--muted);font-size:.8rem;grid-column:1/-1">Loading...</p>';
+  try {
+    const r = await fetch(`${SB_URL}/storage/v1/object/list/${BUCKET}`, { method:'POST', headers:sbH(), body:JSON.stringify({ prefix:'', limit:100, offset:0, sortBy:{ column:'created_at', order:'desc' } }) });
+    if (!r.ok) throw new Error(`HTTP ${r.status} — create a public "media" bucket in Supabase Storage`);
+    renderMedia(await r.json());
+  } catch(e) { g.innerHTML = `<p style="color:var(--red);font-size:.8rem;grid-column:1/-1">${e.message}</p>`; }
+}
+function renderMedia(files) {
+  const g = document.getElementById('mediaGrid');
+  const valid = (Array.isArray(files) ? files : []).filter(f => f.name && f.name !== '.emptyFolderPlaceholder');
+  if (!valid.length) { g.innerHTML = '<p style="color:var(--muted);font-size:.8rem;grid-column:1/-1">No images uploaded yet.</p>'; return; }
+  g.innerHTML = '';
+  valid.forEach(f => {
+    const url = `${SB_URL}/storage/v1/object/public/${BUCKET}/${f.name}`;
+    const item = document.createElement('div'); item.className = 'adm-media-item';
+    item.innerHTML = `<img class="adm-media-thumb" src="${url}" alt="${f.name}" loading="lazy"/><div class="adm-media-name">${f.name}</div><button class="adm-media-copy" data-url="${url}">Copiar URL</button>`;
+    g.appendChild(item);
+  });
+  g.querySelectorAll('.adm-media-copy').forEach(btn => {
+    btn.addEventListener('click', () => { navigator.clipboard.writeText(btn.dataset.url).then(() => { const o = btn.textContent; btn.textContent='✓ Copiado'; setTimeout(()=>btn.textContent=o,1800); }); });
+  });
+}
+const uploadZone = document.getElementById('uploadZone');
+const mediaInput = document.getElementById('mediaFileInput');
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-active'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-active'));
+uploadZone.addEventListener('drop', async e => { e.preventDefault(); uploadZone.classList.remove('drag-active'); await uploadFiles(e.dataTransfer.files); });
+mediaInput.addEventListener('change', async () => { await uploadFiles(mediaInput.files); mediaInput.value=''; });
+async function uploadFiles(files) {
+  if (!files.length) return;
+  const m = document.getElementById('uploadMsg'); m.textContent = `Subiendo ${files.length} archivo(s)...`; m.className='adm-panel-msg';
+  let ok=0, fail=0;
+  for (const file of files) {
+    if (file.size > 5*1024*1024) { fail++; continue; }
+    const name = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+    try { const r = await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${name}`, { method:'POST', headers:{ apikey:SB_KEY, Authorization:`Bearer ${accessToken}`, 'Content-Type':file.type, 'x-upsert':'false' }, body:file }); r.ok ? ok++ : fail++; }
+    catch { fail++; }
+  }
+  m.textContent = `${ok} subido(s)${fail?`, ${fail} con error`:''}.`; m.className = fail ? 'adm-panel-msg error' : 'adm-panel-msg';
+  loadMedia();
+}
 
-      const latest = undoStack.slice(-6).reverse();
-      historyList.innerHTML = '';
+/* ── USERS ── */
+function decodeJWT(token) { try { return JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))); } catch { return {}; } }
+function loadUsers() {
+  const payload = decodeJWT(accessToken || '');
+  const email   = payload.email || '—';
+  const uid     = payload.sub   || '—';
+  const initials = email.substring(0,2).toUpperCase();
+  const exp = payload.exp ? new Date(payload.exp * 1000).toLocaleString('es') : '—';
+  document.getElementById('currentUserInfo').innerHTML = `
+    <table class="adm-user-table">
+      <thead><tr><th></th><th>User</th><th>ID</th><th>Session expires</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><div class="adm-user-avatar">${initials}</div></td>
+          <td><strong>${email}</strong></td>
+          <td style="font-size:.72rem;color:var(--muted);font-family:monospace">${uid.substring(0,8)}...</td>
+          <td style="font-size:.75rem;color:var(--muted)">${exp}</td>
+          <td><span class="adm-user-badge active">Active</span></td>
+        </tr>
+      </tbody>
+    </table>`;
+  const ref = SB_URL.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1] ?? '';
+  document.getElementById('supabaseAuthLink').href = ref ? `https://supabase.com/dashboard/project/${ref}/auth/users` : 'https://supabase.com/dashboard';
+}
 
-      if (!latest.length) {
-        const emptyItem = document.createElement('li');
-        emptyItem.textContent = 'Sin cambios guardados.';
-        historyList.appendChild(emptyItem);
-        updateButtonsState();
-        return;
-      }
+/* ── INIT ── */
+async function initApp() {
+  document.getElementById('statusBadge').textContent = 'Loading...';
+  try {
+    site = await loadContent();
+    document.getElementById('statusBadge').textContent = 'Connected';
+    // inject bridge on every iframe load
+    document.getElementById('previewFrame').addEventListener('load', injectBridge);
+  } catch(e) { document.getElementById('statusBadge').textContent = 'Error loading content'; }
+}
 
-      latest.forEach((entry) => {
-        const item = document.createElement('li');
-        item.textContent = `${entry.path} -> ${entry.nextValue}`;
-        historyList.appendChild(item);
+/* ── BRIDGE ── */
+function injectBridge() {
+  try {
+    const win = document.getElementById('previewFrame').contentWindow;
+    if (win.__admBridgeActive) return;
+    const s = win.document.createElement('script');
+    s.textContent = `(${bridgeFn.toString()})()`;
+    win.document.head.appendChild(s);
+  } catch(e) { console.warn('Bridge inject failed:', e); }
+}
+
+function bridgeFn() {
+  if (window.__admBridgeActive) return;
+  window.__admBridgeActive = true;
+  let hovered = null, selected = null;
+  const HL = '2px dashed #c8913a', SEL = '2px solid #2271b1';
+
+  document.addEventListener('mouseover', e => {
+    const t = e.target.closest('[data-content-path]');
+    if (hovered && hovered !== selected) hovered.style.outline = '';
+    hovered = t;
+    if (t && t !== selected) { t.style.outline = HL; t.style.cursor = 'pointer'; }
+  });
+  document.addEventListener('mouseout', e => {
+    const t = e.target.closest('[data-content-path]');
+    if (t && t !== selected) t.style.outline = '';
+  });
+  document.addEventListener('click', e => {
+    const t = e.target.closest('[data-content-path]');
+    if (!t) { if (selected) { selected.style.outline = ''; selected = null; } return; }
+    e.preventDefault(); e.stopPropagation();
+    if (selected && selected !== t) selected.style.outline = '';
+    selected = t; t.style.outline = SEL;
+    const path = t.dataset.contentPath;
+    const img  = t.tagName === 'IMG' ? t : t.querySelector('img');
+    const cs   = window.getComputedStyle(t);
+    window.parent.postMessage({ type:'adm-select', path, value: img ? (img.getAttribute('src')||img.src) : t.innerText, isImg:!!img, computedColor:cs.color, computedBg:cs.backgroundColor, computedFontSize:cs.fontSize }, '*');
+  }, true);
+  window.addEventListener('message', e => {
+    if (e.data?.type === 'adm-update') {
+      document.querySelectorAll(`[data-content-path="${e.data.path}"]`).forEach(el => {
+        const img = el.tagName==='IMG' ? el : el.querySelector('img');
+        if (img) img.src = e.data.value; else el.innerText = e.data.value;
       });
-
-      updateButtonsState();
-    };
-
-    const updatePreviewByPath = (bindingType, path, value) => {
-      const frameDoc = previewFrame?.contentDocument;
-      if (!frameDoc) return;
-
-      const bindingAttrByType = {
-        text: 'data-content-path',
-        'image-src': 'data-content-src-path',
-        'link-href': 'data-content-href-path',
-        placeholder: 'data-content-placeholder-path',
-        'image-alt': 'data-content-alt-path',
-      };
-
-      const attr = bindingAttrByType[bindingType];
-      if (!attr) return;
-
-      const selector = `[${attr}="${escapeAttributeValue(path)}"]`;
-      frameDoc.querySelectorAll(selector).forEach((element) => {
-        updatePreviewValue(element, { type: bindingType, path }, String(value ?? ''));
-      });
-    };
-
-    const persistContent = async () => {
-      if (!accessToken) {
-        setSaveMessage('Sesion expirada. Vuelve a iniciar sesion.', true);
-        return false;
-      }
-
-      const response = await fetch(`${apiBase}/site_content?on_conflict=key`, {
-        method: 'POST',
-        headers: {
-          apikey: supabaseAnonKey,
-          Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-          Prefer: 'resolution=merge-duplicates,return=representation',
-        },
-        body: JSON.stringify([
-          {
-            key: contentKey,
-            content: currentContent,
-            updated_at: new Date().toISOString(),
-          },
-        ]),
-      });
-
-      if (!response.ok) {
-        const errorPayload = await response.json().catch(() => ({}));
-        setSaveMessage(`Error guardando: ${errorPayload.message || `HTTP ${response.status}`}`, true);
-        return false;
-      }
-
-      if (netlifyBuildHook) {
-        fetch(netlifyBuildHook, { method: 'POST' }).catch(() => {});
-      }
-
-      return true;
-    };
-
-    const loadContent = async () => {
-      try {
-        const response = await fetch(
-          `${apiBase}/site_content?key=eq.${encodeURIComponent(contentKey)}&select=content&limit=1`,
-          {
-            headers: {
-              apikey: supabaseAnonKey,
-              Authorization: accessToken ? `Bearer ${accessToken}` : `Bearer ${supabaseAnonKey}`,
-            },
-          },
-        );
-
-        if (!response.ok) {
-          const errorPayload = await response.json().catch(() => ({}));
-          throw new Error(errorPayload.message || `HTTP ${response.status}`);
-        }
-
-        const rows = await response.json();
-        const row = Array.isArray(rows) ? rows[0] : null;
-
-        if (row?.content && typeof row.content === 'object') {
-          currentContent = row.content;
-        } else {
-          currentContent = structuredClone(fallbackContent);
-        }
-
-        renderSelection();
-        setSaveMessage('Contenido cargado desde Supabase.');
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'No se pudo cargar contenido.';
-        currentContent = structuredClone(fallbackContent);
-        renderSelection();
-
-        if (String(message).includes("Could not find the table 'public.site_content'")) {
-          setSaveMessage('Falta crear la tabla site_content en Supabase (SQL Editor). Ejecuta el script de setup y recarga.', true);
-          return;
-        }
-
-        setSaveMessage(`No se pudo leer site_content en Supabase: ${message}`, true);
-      }
-    };
-
-    const saveContent = async () => {
-      if (!currentBinding || !currentTarget) {
-        setSaveMessage('Selecciona primero un elemento del preview.', true);
-        return;
-      }
-
-      const nextValue = fieldValueEl.value;
-      const previousValueRaw = getByPath(currentContent, currentBinding.path);
-      const previousValue = previousValueRaw == null ? '' : String(previousValueRaw);
-
-      if (previousValue === nextValue) {
-        setSaveMessage('No hay cambios para guardar.');
-        return;
-      }
-
-      setByPath(currentContent, currentBinding.path, nextValue);
-      updatePreviewValue(currentTarget, currentBinding, nextValue);
-
-      const persisted = await persistContent();
-      if (!persisted) {
-        setByPath(currentContent, currentBinding.path, previousValue);
-        updatePreviewValue(currentTarget, currentBinding, previousValue);
-        return;
-      }
-
-      undoStack.push({
-        path: currentBinding.path,
-        type: currentBinding.type,
-        previousValue,
-        nextValue,
-      });
-
-      if (undoStack.length > maxHistoryEntries) {
-        undoStack.shift();
-      }
-
-      redoStack.length = 0;
-      renderHistory();
-
-      setSaveMessage('Guardado online correctamente.');
-    };
-
-    const applyHistoryEntry = async (entry, direction) => {
-      const toValue = direction === 'undo' ? entry.previousValue : entry.nextValue;
-      const rollbackValue = direction === 'undo' ? entry.nextValue : entry.previousValue;
-
-      setByPath(currentContent, entry.path, toValue);
-      updatePreviewByPath(entry.type, entry.path, toValue);
-
-      const persisted = await persistContent();
-      if (!persisted) {
-        setByPath(currentContent, entry.path, rollbackValue);
-        updatePreviewByPath(entry.type, entry.path, rollbackValue);
-        return;
-      }
-
-      if (currentBinding && currentBinding.path === entry.path && currentBinding.type === entry.type) {
-        renderSelection();
-      }
-
-      if (direction === 'undo') {
-        redoStack.push(entry);
-        setSaveMessage('Cambio revertido correctamente.');
-      } else {
-        undoStack.push(entry);
-        setSaveMessage('Cambio rehecho correctamente.');
-      }
-
-      renderHistory();
-    };
-
-    const setupPreviewBridge = () => {
-      const frameDoc = previewFrame?.contentDocument;
-      if (!frameDoc) return;
-
-      if (frameDoc.getElementById('adm-bridge-style')) {
-        previewBridgeReady = true;
-        return;
-      }
-
-      const style = frameDoc.createElement('style');
-      style.id = 'adm-bridge-style';
-      style.textContent = `
-        [data-content-path],
-        [data-content-src-path],
-        [data-content-href-path],
-        [data-content-placeholder-path],
-        [data-content-alt-path] {
-          outline: 2px dashed rgba(200, 145, 58, 0.25);
-          outline-offset: 2px;
-          cursor: pointer;
-        }
-
-        [data-adm-selected="true"] {
-          outline: 2px solid #1B4E81 !important;
-          box-shadow: 0 0 0 4px rgba(27, 78, 129, 0.14);
-        }
-      `;
-      frameDoc.head.appendChild(style);
-
-      const pickEditable = (target) => {
-        const origin = isElementNode(target)
-          ? target
-          : target && isElementNode(target.parentElement)
-            ? target.parentElement
-            : null;
-
-        if (!origin) return null;
-
-        return origin.closest('[data-content-path], [data-content-src-path], [data-content-href-path], [data-content-placeholder-path], [data-content-alt-path]');
-      };
-
-      frameDoc.addEventListener('pointerdown', (event) => {
-        const element = pickEditable(event.target);
-        if (!element) return;
-
-        event.preventDefault();
-        event.stopPropagation();
-        setActiveElement(element);
-      }, true);
-
-      frameDoc.addEventListener('mouseover', (event) => {
-        const element = pickEditable(event.target);
-        if (!element) return;
-        setActiveElement(element);
-      }, true);
-
-      frameDoc.addEventListener('click', (event) => {
-        const element = pickEditable(event.target);
-        if (!element) return;
-
-        event.preventDefault();
-        event.stopPropagation();
-
-        setActiveElement(element);
-      }, true);
-
-      previewBridgeReady = true;
-    };
-
-    const initPreviewBridge = () => {
-      if (previewBridgeReady) return;
-      const frameDoc = previewFrame?.contentDocument;
-      if (!frameDoc || frameDoc.readyState === 'loading') return;
-      setupPreviewBridge();
-    };
-
-    const openWorkspace = async () => {
-      authCard.hidden = true;
-      workspace.hidden = false;
-      await loadContent();
-      initPreviewBridge();
-    };
-
-    loginForm?.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const email = document.getElementById('adminEmail')?.value || '';
-      const password = document.getElementById('adminPassword')?.value || '';
-
-      if (loginBtn instanceof HTMLButtonElement) {
-        loginBtn.disabled = true;
-        loginBtn.textContent = 'Entrando...';
-      }
-
-      authMessage.textContent = 'Validando acceso...';
-      try {
-        const response = await fetch(`${authBase}/token?grant_type=password`, {
-          method: 'POST',
-          headers: {
-            apikey: supabaseAnonKey,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email, password }),
-        });
-
-        const payload = await response.json().catch(() => ({}));
-
-        if (!response.ok || !payload.access_token) {
-          authMessage.textContent = `Acceso denegado: ${payload.error_description || payload.msg || payload.message || 'Credenciales invalidas'}`;
-          return;
-        }
-
-        accessToken = payload.access_token;
-
-        authMessage.textContent = '';
-        await openWorkspace();
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'No se pudo iniciar sesion.';
-        authMessage.textContent = `Error de conexion con Supabase: ${message}`;
-      } finally {
-        if (loginBtn instanceof HTMLButtonElement) {
-          loginBtn.disabled = false;
-          loginBtn.textContent = 'Entrar';
-        }
-      }
-    });
-
-    saveBtn?.addEventListener('click', () => {
-      saveContent().catch((error) => {
-        setSaveMessage(`Error guardando: ${error.message}`, true);
-      });
-    });
-
-    undoBtn?.addEventListener('click', () => {
-      const entry = undoStack.pop();
-      if (!entry) {
-        renderHistory();
-        return;
-      }
-
-      applyHistoryEntry(entry, 'undo').catch((error) => {
-        undoStack.push(entry);
-        renderHistory();
-        setSaveMessage(`Error al deshacer: ${error.message}`, true);
-      });
-    });
-
-    redoBtn?.addEventListener('click', () => {
-      const entry = redoStack.pop();
-      if (!entry) {
-        renderHistory();
-        return;
-      }
-
-      applyHistoryEntry(entry, 'redo').catch((error) => {
-        redoStack.push(entry);
-        renderHistory();
-        setSaveMessage(`Error al rehacer: ${error.message}`, true);
-      });
-    });
-
-    fieldValueEl?.addEventListener('input', () => {
-      if (!currentBinding || !currentTarget) return;
-      updatePreviewValue(currentTarget, currentBinding, fieldValueEl.value);
-    });
-
-    logoutBtn?.addEventListener('click', async () => {
-      accessToken = '';
-      workspace.hidden = true;
-      authCard.hidden = false;
-      authMessage.textContent = 'Sesion cerrada.';
-      setSaveMessage('');
-    });
-
-    previewFrame?.addEventListener('load', () => {
-      initPreviewBridge();
-    });
-
-    renderHistory();
-
-  </script>
-</BaseLayout>
+    }
+    if (e.data?.type === 'adm-style') {
+      document.querySelectorAll(`[data-content-path="${e.data.path}"]`).forEach(el => { el.style[e.data.prop] = e.data.value; });
+    }
+  });
+}
+
+/* init preview panel display */
+document.getElementById('previewPanel').style.display = 'none';
+</script>
+</body>
+</html>
