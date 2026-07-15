@@ -651,8 +651,25 @@ function normColor(c) {
 ['TextColor','BgColor'].forEach(k => {
   const p = document.getElementById(`prop${k}`);
   const h = document.getElementById(`prop${k}Hex`);
-  p.addEventListener('input', () => h.value = p.value);
-  h.addEventListener('change', () => { if (/^#[0-9a-fA-F]{6}$/.test(h.value)) p.value = h.value; });
+  const cssProp = k === 'TextColor' ? 'color' : 'backgroundColor';
+  p.addEventListener('input', () => {
+    h.value = p.value;
+    if (selectedPath) document.getElementById('previewFrame').contentWindow?.postMessage({ type:'adm-style', path:selectedPath, prop:cssProp, value:p.value }, '*');
+  });
+  h.addEventListener('change', () => {
+    if (/^#[0-9a-fA-F]{6}$/.test(h.value)) {
+      p.value = h.value;
+      if (selectedPath) document.getElementById('previewFrame').contentWindow?.postMessage({ type:'adm-style', path:selectedPath, prop:cssProp, value:h.value }, '*');
+    }
+  });
+});
+
+document.getElementById('propText').addEventListener('input', () => {
+  if (selectedPath) document.getElementById('previewFrame').contentWindow?.postMessage({ type:'adm-update', path:selectedPath, value:document.getElementById('propText').value }, '*');
+});
+document.getElementById('propFontSize').addEventListener('change', () => {
+  const fs = document.getElementById('propFontSize').value;
+  if (selectedPath && fs) document.getElementById('previewFrame').contentWindow?.postMessage({ type:'adm-style', path:selectedPath, prop:'fontSize', value:fs }, '*');
 });
 
 /* ── HISTORY / SAVE ── */
@@ -707,19 +724,22 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   const newV  = isImg ? document.getElementById('propImgUrl').value : document.getElementById('propText').value;
   pushHist(selectedPath, getFromSite(selectedPath), newV);
   applyToSite(selectedPath, newV);
+
+  /* Apply preview immediately — before the async save */
+  const fw = document.getElementById('previewFrame').contentWindow;
+  postUpdate(selectedPath, newV);
+  const tc = document.getElementById('propTextColor').value;
+  const bc = document.getElementById('propBgColor').value;
+  const fs = document.getElementById('propFontSize').value;
+  if (tc) fw?.postMessage({ type:'adm-style', path:selectedPath, prop:'color', value:tc }, '*');
+  if (bc) fw?.postMessage({ type:'adm-style', path:selectedPath, prop:'backgroundColor', value:bc }, '*');
+  if (fs) fw?.postMessage({ type:'adm-style', path:selectedPath, prop:'fontSize', value:fs }, '*');
+
   const msg = document.getElementById('saveMessage');
   msg.textContent = 'Saving...'; msg.className = '';
   try {
     await saveContent(site);
-    msg.textContent = 'Guardado ✓';
-    postUpdate(selectedPath, newV);
-    const fw = document.getElementById('previewFrame').contentWindow;
-    const tc = document.getElementById('propTextColor').value;
-    const bc = document.getElementById('propBgColor').value;
-    const fs = document.getElementById('propFontSize').value;
-    if (tc) fw?.postMessage({ type:'adm-style', path:selectedPath, prop:'color', value:tc }, '*');
-    if (bc) fw?.postMessage({ type:'adm-style', path:selectedPath, prop:'backgroundColor', value:bc }, '*');
-    if (fs) fw?.postMessage({ type:'adm-style', path:selectedPath, prop:'fontSize', value:fs }, '*');
+    msg.textContent = 'Saved ✓';
   } catch(e) { msg.textContent = `Error: ${e.message}`; msg.className = 'error'; }
 });
 
