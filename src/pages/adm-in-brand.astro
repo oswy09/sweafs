@@ -1018,32 +1018,51 @@ function bridgeFn() {
   let hovered = null, selected = null;
   const HL = '2px dashed #c8913a', SEL = '2px solid #2271b1';
 
+  /* resolve the nearest editable element — supports both data-content-path and data-content-src-path */
+  function nearest(target) {
+    return target.closest('[data-content-path],[data-content-src-path]');
+  }
+  function getPath(el) {
+    return el.dataset.contentPath || el.dataset.contentSrcPath;
+  }
+  function isImgEl(el) {
+    return !!el.dataset.contentSrcPath || el.tagName === 'IMG' || !!el.querySelector('img');
+  }
+  function getSrc(el) {
+    if (el.tagName === 'IMG') return el.getAttribute('src') || el.src;
+    const img = el.querySelector('img');
+    return img ? (img.getAttribute('src') || img.src) : '';
+  }
+
   document.addEventListener('mouseover', e => {
-    const t = e.target.closest('[data-content-path]');
+    const t = nearest(e.target);
     if (hovered && hovered !== selected) hovered.style.outline = '';
     hovered = t;
     if (t && t !== selected) { t.style.outline = HL; t.style.cursor = 'pointer'; }
   });
   document.addEventListener('mouseout', e => {
-    const t = e.target.closest('[data-content-path]');
+    const t = nearest(e.target);
     if (t && t !== selected) t.style.outline = '';
   });
   document.addEventListener('click', e => {
-    const t = e.target.closest('[data-content-path]');
+    const t = nearest(e.target);
     if (!t) { if (selected) { selected.style.outline = ''; selected = null; } return; }
     e.preventDefault(); e.stopPropagation();
     if (selected && selected !== t) selected.style.outline = '';
     selected = t; t.style.outline = SEL;
-    const path = t.dataset.contentPath;
-    const img  = t.tagName === 'IMG' ? t : t.querySelector('img');
-    const cs   = window.getComputedStyle(t);
-    window.parent.postMessage({ type:'adm-select', path, value: img ? (img.getAttribute('src')||img.src) : t.innerText, isImg:!!img, computedColor:cs.color, computedBg:cs.backgroundColor, computedFontSize:cs.fontSize }, '*');
+    const path  = getPath(t);
+    const isImg = isImgEl(t);
+    const cs    = window.getComputedStyle(t);
+    window.parent.postMessage({ type:'adm-select', path, value: isImg ? getSrc(t) : t.innerText, isImg, computedColor:cs.color, computedBg:cs.backgroundColor, computedFontSize:cs.fontSize }, '*');
   }, true);
   window.addEventListener('message', e => {
     if (e.data?.type === 'adm-update') {
-      document.querySelectorAll(`[data-content-path="${e.data.path}"]`).forEach(el => {
-        const img = el.tagName==='IMG' ? el : el.querySelector('img');
-        if (img) img.src = e.data.value; else el.innerText = e.data.value;
+      const path = e.data.path;
+      /* match both attribute types */
+      document.querySelectorAll(`[data-content-path="${path}"],[data-content-src-path="${path}"]`).forEach(el => {
+        if (el.tagName === 'IMG') { el.src = e.data.value; }
+        else if (el.dataset.contentSrcPath) { const img = el.querySelector('img'); if (img) img.src = e.data.value; }
+        else { el.innerText = e.data.value; }
       });
     }
     if (e.data?.type === 'adm-style') {
