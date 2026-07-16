@@ -6,7 +6,7 @@ import { site } from '../data/site';
 
 const whyIcons = ['bi-shield-check', 'bi-recycle', 'bi-lightning-charge'];
 const [featuredService, ...simpleServices] = site.services;
-const showGallery = !!(featuredService?.before?.src && featuredService?.after?.src);
+const showGallery = featuredService?.showGallery === true;
 
 const optimizeCloudinaryImage = (url: string, transforms = 'f_auto,q_auto:eco,w_1920,dpr_auto') => {
   const uploadSegment = '/upload/';
