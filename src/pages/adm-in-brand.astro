@@ -631,7 +631,7 @@ window.switchPanel = function(name) {
 
   if (name === 'seo')      fillSeo();
   if (name === 'settings') fillSettings();
-  if (name === 'media')    loadMedia();
+
   if (name === 'users')    loadUsers();
   if (name === 'sections') loadSections();
 };
@@ -882,51 +882,6 @@ document.getElementById('saveSectionsBtn').addEventListener('click', async () =>
   catch(e) { m.textContent = `Error: ${e.message}`; m.className = 'adm-panel-msg error'; }
 });
 
-/* ── MEDIA ── */
-const BUCKET = 'media';
-async function loadMedia() {
-  const g = document.getElementById('mediaGrid');
-  g.innerHTML = '<p style="color:var(--muted);font-size:.8rem;grid-column:1/-1">Loading...</p>';
-  try {
-    const r = await fetch(`${SB_URL}/storage/v1/object/list/${BUCKET}`, { method:'POST', headers:sbH(), body:JSON.stringify({ prefix:'', limit:100, offset:0, sortBy:{ column:'created_at', order:'desc' } }) });
-    if (!r.ok) throw new Error(`HTTP ${r.status} — create a public "media" bucket in Supabase Storage`);
-    renderMedia(await r.json());
-  } catch(e) { g.innerHTML = `<p style="color:var(--red);font-size:.8rem;grid-column:1/-1">${e.message}</p>`; }
-}
-function renderMedia(files) {
-  const g = document.getElementById('mediaGrid');
-  const valid = (Array.isArray(files) ? files : []).filter(f => f.name && f.name !== '.emptyFolderPlaceholder');
-  if (!valid.length) { g.innerHTML = '<p style="color:var(--muted);font-size:.8rem;grid-column:1/-1">No images uploaded yet.</p>'; return; }
-  g.innerHTML = '';
-  valid.forEach(f => {
-    const url = `${SB_URL}/storage/v1/object/public/${BUCKET}/${f.name}`;
-    const item = document.createElement('div'); item.className = 'adm-media-item';
-    item.innerHTML = `<img class="adm-media-thumb" src="${url}" alt="${f.name}" loading="lazy"/><div class="adm-media-name">${f.name}</div><button class="adm-media-copy" data-url="${url}">Copiar URL</button>`;
-    g.appendChild(item);
-  });
-  g.querySelectorAll('.adm-media-copy').forEach(btn => {
-    btn.addEventListener('click', () => { navigator.clipboard.writeText(btn.dataset.url).then(() => { const o = btn.textContent; btn.textContent='✓ Copiado'; setTimeout(()=>btn.textContent=o,1800); }); });
-  });
-}
-const uploadZone = document.getElementById('uploadZone');
-const mediaInput = document.getElementById('mediaFileInput');
-uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-active'); });
-uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-active'));
-uploadZone.addEventListener('drop', async e => { e.preventDefault(); uploadZone.classList.remove('drag-active'); await uploadFiles(e.dataTransfer.files); });
-mediaInput.addEventListener('change', async () => { await uploadFiles(mediaInput.files); mediaInput.value=''; });
-async function uploadFiles(files) {
-  if (!files.length) return;
-  const m = document.getElementById('uploadMsg'); m.textContent = `Subiendo ${files.length} archivo(s)...`; m.className='adm-panel-msg';
-  let ok=0, fail=0;
-  for (const file of files) {
-    if (file.size > 5*1024*1024) { fail++; continue; }
-    const name = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
-    try { const r = await fetch(`${SB_URL}/storage/v1/object/${BUCKET}/${name}`, { method:'POST', headers:{ apikey:SB_KEY, Authorization:`Bearer ${accessToken}`, 'Content-Type':file.type, 'x-upsert':'false' }, body:file }); r.ok ? ok++ : fail++; }
-    catch { fail++; }
-  }
-  m.textContent = `${ok} subido(s)${fail?`, ${fail} con error`:''}.`; m.className = fail ? 'adm-panel-msg error' : 'adm-panel-msg';
-  loadMedia();
-}
 
 /* ── CLOUDINARY IMAGE UPLOAD ── */
 const CLD_CLOUD  = 'ddqbnr9vo';
