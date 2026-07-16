@@ -316,8 +316,17 @@ const BUILD_HOOK   = import.meta.env.NETLIFY_BUILD_HOOK_URL ?? '';
             </div>
 
             <div class="adm-ctrl" id="ctrlImg" hidden>
-              <span class="adm-ctrl-label">URL de imagen</span>
-              <input type="url" id="propImgUrl" placeholder="https://..."/>
+              <span class="adm-ctrl-label">Image</span>
+              <div class="adm-img-preview-wrap">
+                <img id="imgPreviewThumb" src="" alt="" style="display:none;width:100%;max-height:110px;object-fit:cover;border-radius:4px;border:1px solid var(--border);margin-bottom:.4rem"/>
+              </div>
+              <label class="adm-upload-btn" id="imgUploadLabel">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Upload image
+                <input type="file" id="imgFileInput" accept="image/*" style="display:none"/>
+              </label>
+              <p id="imgUploadMsg" style="font-size:.75rem;color:var(--muted);margin-top:.3rem;min-height:1rem"></p>
+              <input type="url" id="propImgUrl" placeholder="https://..." style="margin-top:.4rem;font-size:.72rem;color:var(--muted)"/>
             </div>
 
             <hr class="adm-divider"/>
@@ -918,6 +927,43 @@ async function uploadFiles(files) {
   m.textContent = `${ok} subido(s)${fail?`, ${fail} con error`:''}.`; m.className = fail ? 'adm-panel-msg error' : 'adm-panel-msg';
   loadMedia();
 }
+
+/* ── CLOUDINARY IMAGE UPLOAD ── */
+const CLD_CLOUD  = 'ddqbnr9vo';
+const CLD_PRESET = 'swf-upload';
+
+document.getElementById('imgFileInput').addEventListener('change', async function() {
+  const file = this.files[0];
+  if (!file) return;
+  const msg = document.getElementById('imgUploadMsg');
+  msg.textContent = 'Uploading...'; msg.style.color = 'var(--muted)';
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', CLD_PRESET);
+    const r = await fetch(`https://api.cloudinary.com/v1_1/${CLD_CLOUD}/image/upload`, { method:'POST', body:fd });
+    const d = await r.json();
+    if (!r.ok || d.error) throw new Error(d.error?.message || `HTTP ${r.status}`);
+    const url = d.secure_url;
+    document.getElementById('propImgUrl').value = url;
+    const thumb = document.getElementById('imgPreviewThumb');
+    thumb.src = url; thumb.style.display = 'block';
+    msg.textContent = 'Uploaded ✓'; msg.style.color = 'var(--green)';
+    /* live-update preview iframe immediately */
+    if (selectedPath) document.getElementById('previewFrame').contentWindow?.postMessage({ type:'adm-update', path:selectedPath, value:url }, '*');
+  } catch(e) {
+    msg.textContent = `Error: ${e.message}`; msg.style.color = 'var(--red)';
+  }
+  this.value = '';
+});
+
+/* show thumb when image element is selected */
+window.addEventListener('message', e => {
+  if (e.data?.type !== 'adm-select' || !e.data.isImg) return;
+  const thumb = document.getElementById('imgPreviewThumb');
+  if (e.data.value) { thumb.src = e.data.value; thumb.style.display = 'block'; }
+  else thumb.style.display = 'none';
+}, false);
 
 /* ── USERS ── */
 function decodeJWT(token) { try { return JSON.parse(atob(token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))); } catch { return {}; } }

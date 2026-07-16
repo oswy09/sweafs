@@ -63,6 +63,8 @@ body { background: var(--bg); color: var(--text); font-family: -apple-system, Bl
 .btn-topbar.pub { background: var(--accent); border-color: var(--accent-dk); color: #fff; }
 .btn-topbar.pub:hover { background: var(--accent-dk); }
 .adm-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: #fff; font-size: .68rem; font-weight: 700; display: flex; align-items: center; justify-content: center; cursor: default; letter-spacing: .03em; flex-shrink: 0; }
+.adm-upload-btn { display:flex; align-items:center; gap:.4rem; width:100%; padding:.4rem .7rem; background:var(--sb); color:#c3c4c7; border:1px solid rgba(255,255,255,.1); border-radius:3px; font-size:.75rem; cursor:pointer; justify-content:center; transition:background .15s; }
+.adm-upload-btn:hover { background:#2c3338; color:#fff; }
 
 /* ══ SIDEBAR ══ */
 .adm-sidebar { background: var(--sb); grid-row: 2; overflow-x: hidden; overflow-y: auto; border-right: 1px solid rgba(255,255,255,.04); }
