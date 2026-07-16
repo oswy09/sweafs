@@ -68,13 +68,13 @@
       "cta": "Begär offert",
       "reverse": false,
       "before": {
-        "src": "https://res.cloudinary.com/ddqbnr9vo/image/upload/v1779631777/tak_f%C3%B6re_pzbi0y.jpg",
+        "src": "",
         "alt": "Tak med mossa – före tvätt",
         "label": "Före",
         "objectPosition": "center 58%"
       },
       "after": {
-        "src": "https://res.cloudinary.com/ddqbnr9vo/image/upload/v1779631797/tak_efter_zida3k.jpg",
+        "src": "",
         "alt": "Rent tak – efter tvätt",
         "label": "Efter",
         "objectPosition": "center 56%"
