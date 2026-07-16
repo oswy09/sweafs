@@ -932,27 +932,34 @@ async function uploadFiles(files) {
 const CLD_CLOUD  = 'ddqbnr9vo';
 const CLD_PRESET = 'swf-upload';
 
+async function uploadToCloudinary(file) {
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', CLD_PRESET);
+  const r = await fetch(`https://api.cloudinary.com/v1_1/${CLD_CLOUD}/image/upload`, { method:'POST', body:fd });
+  const d = await r.json();
+  if (!r.ok || d.error) throw new Error(d.error?.message || `HTTP ${r.status} — ${JSON.stringify(d)}`);
+  return d.secure_url;
+}
+
 document.getElementById('imgFileInput').addEventListener('change', async function() {
   const file = this.files[0];
   if (!file) return;
-  const msg = document.getElementById('imgUploadMsg');
-  msg.textContent = 'Uploading...'; msg.style.color = 'var(--muted)';
+  const msg   = document.getElementById('imgUploadMsg');
+  const thumb = document.getElementById('imgPreviewThumb');
+  msg.textContent = `Uploading ${file.name}…`; msg.style.color = 'var(--muted)';
   try {
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('upload_preset', CLD_PRESET);
-    const r = await fetch(`https://api.cloudinary.com/v1_1/${CLD_CLOUD}/image/upload`, { method:'POST', body:fd });
-    const d = await r.json();
-    if (!r.ok || d.error) throw new Error(d.error?.message || `HTTP ${r.status}`);
-    const url = d.secure_url;
+    const url = await uploadToCloudinary(file);
     document.getElementById('propImgUrl').value = url;
-    const thumb = document.getElementById('imgPreviewThumb');
     thumb.src = url; thumb.style.display = 'block';
-    msg.textContent = 'Uploaded ✓'; msg.style.color = 'var(--green)';
-    /* live-update preview iframe immediately */
-    if (selectedPath) document.getElementById('previewFrame').contentWindow?.postMessage({ type:'adm-update', path:selectedPath, value:url }, '*');
+    msg.textContent = '✓ Uploaded — click Save changes to persist';
+    msg.style.color = 'var(--green)';
+    if (selectedPath) {
+      document.getElementById('previewFrame').contentWindow?.postMessage({ type:'adm-update', path:selectedPath, value:url }, '*');
+    }
   } catch(e) {
-    msg.textContent = `Error: ${e.message}`; msg.style.color = 'var(--red)';
+    console.error('[Cloudinary upload error]', e);
+    msg.textContent = `Upload error: ${e.message}`; msg.style.color = 'var(--red)';
   }
   this.value = '';
 });
@@ -1018,20 +1025,32 @@ function bridgeFn() {
   let hovered = null, selected = null;
   const HL = '2px dashed #c8913a', SEL = '2px solid #2271b1';
 
-  /* resolve the nearest editable element — supports both data-content-path and data-content-src-path */
   function nearest(target) {
     return target.closest('[data-content-path],[data-content-src-path]');
   }
-  function getPath(el) {
-    return el.dataset.contentPath || el.dataset.contentSrcPath;
+  function findAtPoint(x, y) {
+    const els = document.elementsFromPoint(x, y);
+    for (const el of els) {
+      const found = nearest(el);
+      if (found) return found;
+    }
+    return null;
   }
-  function isImgEl(el) {
-    return !!el.dataset.contentSrcPath || el.tagName === 'IMG' || !!el.querySelector('img');
-  }
+  function getPath(el) { return el.dataset.contentPath || el.dataset.contentSrcPath; }
+  function isImgEl(el) { return !!el.dataset.contentSrcPath || el.tagName === 'IMG'; }
   function getSrc(el) {
     if (el.tagName === 'IMG') return el.getAttribute('src') || el.src;
     const img = el.querySelector('img');
     return img ? (img.getAttribute('src') || img.src) : '';
+  }
+  function selectEl(t) {
+    if (!t) { if (selected) { selected.style.outline = ''; selected = null; } return; }
+    if (selected && selected !== t) selected.style.outline = '';
+    selected = t; t.style.outline = SEL;
+    const path  = getPath(t);
+    const isImg = isImgEl(t);
+    const cs    = window.getComputedStyle(t);
+    window.parent.postMessage({ type:'adm-select', path, value: isImg ? getSrc(t) : t.innerText, isImg, computedColor:cs.color, computedBg:cs.backgroundColor, computedFontSize:cs.fontSize }, '*');
   }
 
   document.addEventListener('mouseover', e => {
@@ -1045,20 +1064,35 @@ function bridgeFn() {
     if (t && t !== selected) t.style.outline = '';
   });
   document.addEventListener('click', e => {
-    const t = nearest(e.target);
+    /* use elementsFromPoint so images behind overlays are detected */
+    const t = findAtPoint(e.clientX, e.clientY);
     if (!t) { if (selected) { selected.style.outline = ''; selected = null; } return; }
     e.preventDefault(); e.stopPropagation();
-    if (selected && selected !== t) selected.style.outline = '';
-    selected = t; t.style.outline = SEL;
-    const path  = getPath(t);
-    const isImg = isImgEl(t);
-    const cs    = window.getComputedStyle(t);
-    window.parent.postMessage({ type:'adm-select', path, value: isImg ? getSrc(t) : t.innerText, isImg, computedColor:cs.color, computedBg:cs.backgroundColor, computedFontSize:cs.fontSize }, '*');
+    selectEl(t);
   }, true);
+
+  /* inject edit-image overlays on all src-path images so they stay clickable */
+  function addImgOverlays() {
+    document.querySelectorAll('img[data-content-src-path]').forEach(img => {
+      if (img.__admOverlay) return;
+      img.__admOverlay = true;
+      const wrap = img.parentElement;
+      if (getComputedStyle(wrap).position === 'static') wrap.style.position = 'relative';
+      const btn = document.createElement('button');
+      btn.textContent = '✎ Edit image';
+      btn.style.cssText = 'position:absolute;top:8px;left:8px;z-index:9999;background:rgba(0,0,0,.65);color:#fff;border:none;border-radius:4px;padding:4px 10px;font-size:11px;cursor:pointer;pointer-events:auto;';
+      btn.addEventListener('click', ev => { ev.preventDefault(); ev.stopPropagation(); selectEl(img); });
+      btn.addEventListener('mouseenter', () => { img.style.outline = HL; });
+      btn.addEventListener('mouseleave', () => { if (img !== selected) img.style.outline = ''; });
+      wrap.appendChild(btn);
+    });
+  }
+  addImgOverlays();
+  new MutationObserver(addImgOverlays).observe(document.body, { childList:true, subtree:true });
+
   window.addEventListener('message', e => {
     if (e.data?.type === 'adm-update') {
       const path = e.data.path;
-      /* match both attribute types */
       document.querySelectorAll(`[data-content-path="${path}"],[data-content-src-path="${path}"]`).forEach(el => {
         if (el.tagName === 'IMG') { el.src = e.data.value; }
         else if (el.dataset.contentSrcPath) { const img = el.querySelector('img'); if (img) img.src = e.data.value; }
