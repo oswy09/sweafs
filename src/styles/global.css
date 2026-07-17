@@ -422,7 +422,6 @@ footer {
 
 .service-block.no-gallery {
   grid-template-columns: 1fr;
-  max-width: 680px;
 }
 
 .service-block.reverse {
