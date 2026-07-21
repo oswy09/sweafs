@@ -7,14 +7,6 @@ import { site } from '../data/site';
 const whyIcons = ['bi-shield-check', 'bi-recycle', 'bi-lightning-charge'];
 const [featuredService, ...simpleServices] = site.services;
 const showGallery = featuredService?.showGallery === true;
-// Display order: Taktvätt(0), Sten(3), Fasadtvätt(1), Klottersanering(2)
-const s = site.services;
-const displayServices = [
-  { service: s[0], idx: 0 },
-  { service: s[3], idx: 3 },
-  { service: s[1], idx: 1 },
-  { service: s[2], idx: 2 },
-].filter(d => d.service);
 
 const optimizeCloudinaryImage = (url: string, transforms = 'f_auto,q_auto:eco,w_1920,dpr_auto') => {
   const uploadSegment = '/upload/';
@@ -73,12 +65,26 @@ const heroImageOptimized = optimizeCloudinaryImage(site.hero.image);
         <p class="section-lead" data-content-path="servicesSection.lead">{site.servicesSection.lead}</p>
 
         <div class="service-simple-grid">
-          {displayServices.map(({ service, idx }) => (
+          <article class="service-simple-item reveal">
+            <div class="service-text">
+              <h3 class="animate-title" data-content-path="services.0.title">{site.services[0].title}</h3>
+              <p data-content-path="services.0.body">{site.services[0].body}</p>
+              <a href="#contact" class="btn-navy animate-btn" data-content-path="services.0.cta">{site.services[0].cta}</a>
+            </div>
+          </article>
+          <article class="service-simple-item reveal">
+            <div class="service-text">
+              <h3 class="animate-title">Sten och altantvätt</h3>
+              <p>Vi rengör stenytor och altaner med professionell utrustning för att effektivt avlägsna smuts, mossa, alger och andra beläggningar. Tvättmetoden anpassas efter underlaget för att ge ett skonsamt och hållbart resultat utan att skada ytan.{'\n\n'}Vid behov fyller vi på ny fogsand mellan stenplattorna för att stärka konstruktionen och motverka ogräs. Vi erbjuder även impregnering som skyddar ytan mot fukt, smuts och påväxt, vilket hjälper till att bevara ett rent och välvårdat utseende under längre tid.</p>
+              <a href="#contact" class="btn-navy animate-btn">Begär offert</a>
+            </div>
+          </article>
+          {simpleServices.slice(0, 2).map((service, index) => (
             <article class="service-simple-item reveal">
               <div class="service-text">
-                <h3 class="animate-title" data-content-path={`services.${idx}.title`}>{service.title}</h3>
-                <p data-content-path={`services.${idx}.body`}>{service.body}</p>
-                <a href="#contact" class="btn-navy animate-btn" data-content-path={`services.${idx}.cta`}>{service.cta}</a>
+                <h3 class="animate-title" data-content-path={`services.${index + 1}.title`}>{service.title}</h3>
+                <p data-content-path={`services.${index + 1}.body`}>{service.body}</p>
+                <a href="#contact" class="btn-navy animate-btn" data-content-path={`services.${index + 1}.cta`}>{service.cta}</a>
               </div>
             </article>
           ))}
