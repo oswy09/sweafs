@@ -5,9 +5,8 @@ import SiteHeader from '../components/SiteHeader.vue';
 import { site } from '../data/site';
 
 const whyIcons = ['bi-shield-check', 'bi-recycle', 'bi-lightning-charge'];
-const topServices = [site.services[0], site.services[site.services.length - 1]];
-const topIndices = [0, site.services.length - 1];
-const restServices = site.services.slice(1, -1);
+const [featuredService, ...simpleServices] = site.services;
+const showGallery = featuredService?.showGallery === true;
 
 const optimizeCloudinaryImage = (url: string, transforms = 'f_auto,q_auto:eco,w_1920,dpr_auto') => {
   const uploadSegment = '/upload/';
@@ -65,31 +64,40 @@ const heroImageOptimized = optimizeCloudinaryImage(site.hero.image);
         <h2 class="section-title animate-title" data-content-path="servicesSection.title">{site.servicesSection.title}</h2>
         <p class="section-lead" data-content-path="servicesSection.lead">{site.servicesSection.lead}</p>
 
+        {featuredService ? (
+          <div class:list={["service-block reveal", { reverse: featuredService.reverse, "no-gallery": !showGallery }]}>
+            <div class="service-text">
+              <h3 class="animate-title" data-content-path="services.0.title">{featuredService.title}</h3>
+              <p data-content-path="services.0.body">{featuredService.body}</p>
+              <a href="#contact" class="btn-navy animate-btn" data-content-path="services.0.cta">{featuredService.cta}</a>
+            </div>
+            {showGallery && (
+              <div class="service-gallery" aria-label="Före och efter bilder">
+                <p class="service-gallery-title">FORE / EFTER</p>
+                <figure class="service-photo-card">
+                  <img src={featuredService.before.src} alt={featuredService.before.alt} loading="lazy" decoding="async" width="1200" height="800" style={`object-position: ${featuredService.before.objectPosition};`} data-content-src-path="services.0.before.src" data-content-alt-path="services.0.before.alt" />
+                  <figcaption class="service-photo-tag" data-content-path="services.0.before.label">{featuredService.before.label}</figcaption>
+                </figure>
+                <figure class="service-photo-card">
+                  <img src={featuredService.after.src} alt={featuredService.after.alt} loading="lazy" decoding="async" width="1200" height="800" style={`object-position: ${featuredService.after.objectPosition};`} data-content-src-path="services.0.after.src" data-content-alt-path="services.0.after.alt" />
+                  <figcaption class="service-photo-tag" data-content-path="services.0.after.label">{featuredService.after.label}</figcaption>
+                </figure>
+              </div>
+            )}
+          </div>
+        ) : null}
+
         <div class="service-simple-grid">
-          {topServices.map((service, i) => (
+          {simpleServices.map((service, index) => (
             <article class="service-simple-item reveal">
               <div class="service-text">
-                <h3 class="animate-title" data-content-path={`services.${topIndices[i]}.title`}>{service.title}</h3>
-                <p data-content-path={`services.${topIndices[i]}.body`}>{service.body}</p>
-                <a href="#contact" class="btn-navy animate-btn" data-content-path={`services.${topIndices[i]}.cta`}>{service.cta}</a>
+                <h3 class="animate-title" data-content-path={`services.${index + 1}.title`}>{service.title}</h3>
+                <p data-content-path={`services.${index + 1}.body`}>{service.body}</p>
+                <a href="#contact" class="btn-navy animate-btn" data-content-path={`services.${index + 1}.cta`}>{service.cta}</a>
               </div>
             </article>
           ))}
         </div>
-
-        {restServices.length > 0 && (
-          <div class="service-simple-grid" style="margin-top: 3rem;">
-            {restServices.map((service, index) => (
-              <article class="service-simple-item reveal">
-                <div class="service-text">
-                  <h3 class="animate-title" data-content-path={`services.${index + 1}.title`}>{service.title}</h3>
-                  <p data-content-path={`services.${index + 1}.body`}>{service.body}</p>
-                  <a href="#contact" class="btn-navy animate-btn" data-content-path={`services.${index + 1}.cta`}>{service.cta}</a>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
       </div>
     </section>
 
