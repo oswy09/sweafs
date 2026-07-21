@@ -5,9 +5,16 @@ import SiteHeader from '../components/SiteHeader.vue';
 import { site } from '../data/site';
 
 const whyIcons = ['bi-shield-check', 'bi-recycle', 'bi-lightning-charge'];
-const [featuredService, ...allSimple] = site.services;
+const [featuredService, ...simpleServices] = site.services;
 const showGallery = featuredService?.showGallery === true;
-const simpleServices = allSimple.slice(0, -1);
+// Display order: Taktvätt(0), Sten(3), Fasadtvätt(1), Klottersanering(2)
+const s = site.services;
+const displayServices = [
+  { service: s[0], idx: 0 },
+  { service: s[3], idx: 3 },
+  { service: s[1], idx: 1 },
+  { service: s[2], idx: 2 },
+].filter(d => d.service);
 
 const optimizeCloudinaryImage = (url: string, transforms = 'f_auto,q_auto:eco,w_1920,dpr_auto') => {
   const uploadSegment = '/upload/';
@@ -65,28 +72,13 @@ const heroImageOptimized = optimizeCloudinaryImage(site.hero.image);
         <h2 class="section-title animate-title" data-content-path="servicesSection.title">{site.servicesSection.title}</h2>
         <p class="section-lead" data-content-path="servicesSection.lead">{site.servicesSection.lead}</p>
 
-        <div class="service-simple-grid reveal">
-          <div class="service-text">
-            <h3 class="animate-title" data-content-path="services.0.title">{featuredService?.title}</h3>
-            <p data-content-path="services.0.body">{featuredService?.body}</p>
-            <a href="#contact" class="btn-navy animate-btn" data-content-path="services.0.cta">{featuredService?.cta}</a>
-          </div>
-          {site.services[3] && (
-            <div class="service-text">
-              <h3 class="animate-title" data-content-path="services.3.title">{site.services[3].title}</h3>
-              <p data-content-path="services.3.body">{site.services[3].body}</p>
-              <a href="#contact" class="btn-navy animate-btn" data-content-path="services.3.cta">{site.services[3].cta}</a>
-            </div>
-          )}
-        </div>
-
         <div class="service-simple-grid">
-          {simpleServices.map((service, index) => (
+          {displayServices.map(({ service, idx }) => (
             <article class="service-simple-item reveal">
               <div class="service-text">
-                <h3 class="animate-title" data-content-path={`services.${index + 1}.title`}>{service.title}</h3>
-                <p data-content-path={`services.${index + 1}.body`}>{service.body}</p>
-                <a href="#contact" class="btn-navy animate-btn" data-content-path={`services.${index + 1}.cta`}>{service.cta}</a>
+                <h3 class="animate-title" data-content-path={`services.${idx}.title`}>{service.title}</h3>
+                <p data-content-path={`services.${idx}.body`}>{service.body}</p>
+                <a href="#contact" class="btn-navy animate-btn" data-content-path={`services.${idx}.cta`}>{service.cta}</a>
               </div>
             </article>
           ))}
