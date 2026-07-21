@@ -115,6 +115,14 @@
         "label": "Efter",
         "objectPosition": "center 48%"
       }
+    },
+    {
+      "title": "Sten och altantvätt",
+      "body": "Vi rengör stenytor och altaner med professionell utrustning för att effektivt avlägsna smuts, mossa, alger och andra beläggningar. Tvättmetoden anpassas efter underlaget för att ge ett skonsamt och hållbart resultat utan att skada ytan.\n\nVid behov fyller vi på ny fogsand mellan stenplattorna för att stärka konstruktionen och motverka ogräs. Vi erbjuder även impregnering som skyddar ytan mot fukt, smuts och påväxt, vilket hjälper till att bevara ett rent och välvårdat utseende under längre tid.",
+      "cta": "Begär offert",
+      "reverse": false,
+      "before": { "src": "", "alt": "", "label": "Före", "objectPosition": "center" },
+      "after": { "src": "", "alt": "", "label": "Efter", "objectPosition": "center" }
     }
   ],
   "why": {
