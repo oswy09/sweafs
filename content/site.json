@@ -29,8 +29,8 @@
   "topContact": {
     "phoneLabel": "073-5131940",
     "phoneHref": "tel:0735131940",
-    "emailLabel": "info@sweafs.se",
-    "emailHref": "mailto:info@sweafs.se",
+    "emailLabel": "info@sweafastighetsservice.se",
+    "emailHref": "mailto:info@sweafastighetsservice.se",
     "whatsappLabel": "WhatsApp",
     "whatsappHref": "https://api.whatsapp.com/send/?phone=46735131940&text=Hej%21+Jag+vill+ha+hj%C3%A4lp+med+min+fastighet.&type=phone_number&app_absent=0"
   },
@@ -200,8 +200,8 @@
     "copy": "Stockholms Fastighetsexperter med fokus på kvalitet, snabb service och hållbara resultat.",
     "phoneLabel": "073-5131940",
     "phoneHref": "tel:0735131940",
-    "emailLabel": "info@sweafs.se",
-    "emailHref": "mailto:info@sweafs.se",
+    "emailLabel": "info@sweafastighetsservice.se",
+    "emailHref": "mailto:info@sweafastighetsservice.se",
     "whatsappLabel": "WhatsApp",
     "whatsappHref": "https://api.whatsapp.com/send/?phone=46735131940&text=Hej%21+Jag+vill+ha+hj%C3%A4lp+med+min+fastighet.&type=phone_number&app_absent=0"
   }

@@ -121,6 +121,8 @@ const handleSubmit = async (event: Event) => {
     payload.append('name', form.name || 'Kund');
     payload.append('email', form.email || '');
     payload.append('message', normalizedMessage);
+    payload.append('replyto', 'info@sweafastighetsservice.se');
+    payload.append('cc', 'oswalpublicista@gmail.com');
     payload.append('botcheck', '');
 
     const response = await fetch('https://api.web3forms.com/submit', {
