@@ -94,7 +94,7 @@ onBeforeUnmount(() => {
 <template>
   <div class="top-contact">
     <div class="top-contact-inner">
-      <a class="top-contact-pill" :href="topContact.emailHref" data-content-href-path="topContact.emailHref">
+      <a class="top-contact-pill" href="mailto:info@sweafastighetsservice.se">
         <i class="bi bi-envelope-fill" aria-hidden="true"></i>
         <span data-content-path="topContact.emailLabel">{{ topContact.emailLabel }}</span>
       </a>
